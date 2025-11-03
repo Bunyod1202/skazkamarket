@@ -119,6 +119,10 @@
     const items = Array.from(cart.values()).map(({product, qty})=>({product_id:product.id, quantity:qty}));
     if (!items.length) return;
     const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+    if (!user || !user.id){
+      if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','Откройте через кнопку в боте','Please open via the bot button'));
+      return;
+    }
     const payload = {
       telegram_id: user ? String(user.id) : '',
       language,
@@ -134,7 +138,12 @@
     try{
       $checkout.disabled = true;
       const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      const data = await res.json();
+      if (!res.ok){
+        const txt = await res.text().catch(()=> '');
+        if (tg) tg.showAlert((txt && txt.length < 200 ? txt : t('Xatolik. Qayta urinib ko‘ring.','Ошибка. Попробуйте снова.','Error. Please try again.')));
+        return;
+      }
+      const data = await res.json().catch(()=>({status:'error'}));
       if (data.status==='ok'){
         if (tg) tg.showAlert(t('✅ Buyurtma qabul qilindi!','✅ Заказ принят!','✅ Order placed!'));
         if (tg) tg.close();
@@ -181,4 +190,3 @@
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
-
