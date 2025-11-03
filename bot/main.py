@@ -150,7 +150,7 @@ def main_menu_keyboard(st, chat_id):
     orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
 
     # Localized labels styled like wide menu buttons
-    menu_text = lang_label(st, '✏️ MAVZUNI TANLAYMIZ ◻️', '✏️ ВЫБРАТЬ РАЗДЕЛ ◻️')
+    menu_text = lang_label(st, 'MAXSULOTLARNI TANLASH ', ' ВЫБОР ПРОДУКТОВ ️')
     orders_text = lang_label(st, '🧾 BUYURTMALARIM', '🧾 МОИ ЗАКАЗЫ')
 
     # WebApp buttons when HTTPS; plain text fallback on HTTP
@@ -168,6 +168,42 @@ def main_menu_keyboard(st, chat_id):
     mk.row(orders_btn)
     mk.row(types.KeyboardButton('🌐 Til / Язык / Language'))
     return mk
+
+
+# Language change entry: react to the bottom "Language" button at any time
+@bot.message_handler(func=lambda m: isinstance(m.text, str) and (
+    'language' in m.text.lower() or 'язык' in m.text.lower() or 'til' in m.text.lower()
+))
+def handle_language_button(msg):
+    chat_id = msg.chat.id
+    st = get_state(chat_id)
+    st['stage'] = 'change_lang'
+    STATE[chat_id] = st
+    bot.send_message(chat_id, 'Tilni tanlang / Выберите язык / Choose language', reply_markup=start_keyboard())
+
+
+# Handle language selection when changing language (without re-onboarding)
+@bot.message_handler(func=lambda m: get_state(m.chat.id).get('stage') == 'change_lang')
+def handle_change_lang(msg):
+    chat_id = msg.chat.id
+    st = get_state(chat_id)
+    text = (msg.text or '').strip().upper()
+    if text.startswith('UZ'):
+        st['language'] = 'UZ'
+    elif text.startswith('RU'):
+        st['language'] = 'RU'
+    elif text.startswith('EN'):
+        st['language'] = 'EN'
+    else:
+        bot.send_message(chat_id, 'Please choose UZ / RU / EN', reply_markup=start_keyboard())
+        return
+    st['stage'] = 'done'
+    STATE[chat_id] = st
+    try:
+        requests.post(BASE_URL.rstrip('/') + '/api/user', json={'telegram_id': str(chat_id), 'language': st.get('language')}, timeout=10)
+    except Exception:
+        pass
+    after_onboarding_message(chat_id)
 
 
 def after_onboarding_message(chat_id):
