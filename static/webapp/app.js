@@ -115,10 +115,33 @@
     }catch(e){ /* ignore */ }
   }
 
+  function parseUserFromInitData(){
+    try{
+      if (!tg || !tg.initData) return null;
+      const params = new URLSearchParams(tg.initData);
+      const raw = params.get('user');
+      if (!raw) return null;
+      return JSON.parse(decodeURIComponent(raw));
+    }catch(e){ return null; }
+  }
+
+  async function getTelegramUserWithRetry(){
+    // Try immediate, then retry briefly to allow Telegram to populate initDataUnsafe
+    let u = (tg && tg.initDataUnsafe) ? tg.initDataUnsafe.user : null;
+    if (u && u.id) return u;
+    // Try parsing initData string as fallback
+    u = parseUserFromInitData();
+    if (u && u.id) return u;
+    await new Promise(r => setTimeout(r, 200));
+    u = (tg && tg.initDataUnsafe) ? tg.initDataUnsafe.user : null;
+    if (u && u.id) return u;
+    return parseUserFromInitData();
+  }
+
   async function submitOrder(){
     const items = Array.from(cart.values()).map(({product, qty})=>({product_id:product.id, quantity:qty}));
     if (!items.length) return;
-    const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+    const user = await getTelegramUserWithRetry();
     if (!user || !user.id){
       if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','Откройте через кнопку в боте','Please open via the bot button'));
       return;
