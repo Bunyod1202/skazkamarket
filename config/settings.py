@@ -83,6 +83,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Optional: control file permissions for uploaded files (more permissive for PaaS)
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Telegram / project config from env
