@@ -1,4 +1,5 @@
-(async function(){
+// Telegram WebApp storefront script (clean version)
+(function(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg) tg.expand();
 
@@ -7,8 +8,11 @@
   const $total = document.getElementById('total');
   const $checkout = document.getElementById('checkout');
   const $comment = document.getElementById('comment');
+  const $address = document.getElementById('address');
+  const $whatsapp = document.getElementById('whatsapp');
+  const $email = document.getElementById('email');
 
-  const cart = new Map(); // productId -> {product, qty}
+  const cart = new Map(); // productId -> { product, qty }
   let language = 'UZ';
   let allProducts = [];
   let allCategories = [];
@@ -22,171 +26,159 @@
     if (code.startsWith('uz')) return 'UZ';
     return 'EN';
   }
-
-  function formatPrice(v){
-    return Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  }
+  function t(uz, ru, en){ return language==='RU' ? ru : (language==='EN' ? en : uz); }
+  function fmt(v){ return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
 
   function updateTotal(){
     let sum = 0;
-    for (const [, {product, qty}] of cart){
-      sum += Number(product.price) * qty;
-    }
-    $total.textContent = formatPrice(sum) + ' UZS';
-    $checkout.disabled = sum <= 0;
+    for (const [, {product, qty}] of cart) sum += Number(product.price) * qty;
+    if ($total) $total.textContent = fmt(sum) + ' UZS';
+    if ($checkout) $checkout.disabled = sum <= 0;
   }
 
   function renderCategories(){
     if (!$categories) return;
     $categories.innerHTML = '';
-    const makeCat = (id, name, count) => {
-      const item = document.createElement('div');
-      item.className = 'cat' + (selectedCategory === id ? ' active' : '');
-      item.dataset.id = id;
-      const cat = allCategories.find(c => String(c.id) === String(id));
+    const make = (id, name, count) => {
+      const el = document.createElement('div');
+      el.className = 'cat' + (selectedCategory===id ? ' active' : '');
+      el.dataset.id = id;
+      const cat = allCategories.find(c => String(c.id)===String(id));
       const thumb = (cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20';
-      item.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
-      item.addEventListener('click', () => {
-        selectedCategory = id;
-        renderCategories();
-        renderProducts();
-      });
-      return item;
+      el.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
+      el.addEventListener('click', () => { selectedCategory = id; renderCategories(); renderProducts(); });
+      return el;
     };
-    const totalCount = allProducts.length;
-    const allLabel = (language==='RU') ? 'Все' : (language==='EN' ? 'All' : 'Barchasi');
-    $categories.appendChild(makeCat('all', allLabel, totalCount));
+    $categories.appendChild(make('all', t('Barchasi','Все','All'), allProducts.length));
     allCategories.forEach(c => {
       const name = language==='RU' ? c.name_ru : (language==='EN' ? (c.name_en || c.name_uz) : c.name_uz);
-      $categories.appendChild(makeCat(String(c.id), name, c.count));
+      $categories.appendChild(make(String(c.id), name, c.count));
     });
   }
 
   function renderProducts(){
+    if (!$products) return;
     $products.innerHTML = '';
-    const list = allProducts.filter(p => selectedCategory==='all' ? true : String(p.category_id)===String(selectedCategory));
+    const list = allProducts.filter(p => selectedCategory==='all' || String(p.category_id)===String(selectedCategory));
     list.forEach(p => {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
         <img src="${p.image || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="">
         <div class="content">
-          <div class="name">${language === 'RU' ? p.name_ru : (language === 'EN' ? (p.name_en || p.name_uz) : p.name_uz)}</div>
-          <div class="price">${formatPrice(p.price)} UZS</div>
+          <div class="name">${language==='RU'?p.name_ru:(language==='EN'?(p.name_en||p.name_uz):p.name_uz)}</div>
+          <div class="price">${fmt(p.price)} UZS</div>
           <div class="qty">
             <button class="dec">-</button>
             <input type="text" class="q" value="${cart.get(p.id)?.qty || 0}" readonly />
             <button class="inc">+</button>
           </div>
-        </div>
-      `;
+        </div>`;
       const q = card.querySelector('.q');
-      const dec = card.querySelector('.dec');
       const inc = card.querySelector('.inc');
-
-      function setQty(n){
-        n = Math.max(0, n);
-        q.value = n;
-        if (n === 0) cart.delete(p.id); else cart.set(p.id, {product: p, qty: n});
-        updateTotal();
-      }
-
-      inc.addEventListener('click', () => setQty((parseInt(q.value)||0) + 1));
-      dec.addEventListener('click', () => setQty((parseInt(q.value)||0) - 1));
-
+      const dec = card.querySelector('.dec');
+      function setQty(n){ n=Math.max(0,n); q.value=n; if(n===0) cart.delete(p.id); else cart.set(p.id,{product:p,qty:n}); updateTotal(); }
+      inc.addEventListener('click', ()=>setQty((parseInt(q.value)||0)+1));
+      dec.addEventListener('click', ()=>setQty((parseInt(q.value)||0)-1));
       $products.appendChild(card);
     });
   }
 
   async function loadAll(){
     try{
-      const [catsRes, prodRes] = await Promise.all([
+      const [cr, pr] = await Promise.all([
         fetch(`${window.API_BASE}/categories`),
-        fetch(`${window.API_BASE}/products`),
+        fetch(`${window.API_BASE}/products`)
       ]);
-      const cats = await catsRes.json();
-      const prods = await prodRes.json();
+      const cats = await cr.json();
+      const prods = await pr.json();
       allCategories = cats.categories || [];
       allProducts = prods.products || [];
       renderCategories();
       renderProducts();
-    }catch(e){
-      console.error('Failed to load data', e);
-    }
+    }catch(e){ console.error('Failed to load data', e); }
+  }
+
+  async function upsertUser(){
+    try{
+      const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+      if (!user) return;
+      await fetch('/api/user', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          telegram_id: String(user.id),
+          language,
+          full_name: user.first_name + (user.last_name?(' '+user.last_name):''),
+          username: user.username || ''
+        })
+      });
+    }catch(e){ /* ignore */ }
   }
 
   async function submitOrder(){
-    const items = Array.from(cart.values()).map(({product, qty}) => ({ product_id: product.id, quantity: qty }));
+    const items = Array.from(cart.values()).map(({product, qty})=>({product_id:product.id, quantity:qty}));
     if (!items.length) return;
     const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-     const payload = {
-       telegram_id: user ? String(user.id) : '',
-       language,
-       phone: '',
-       full_name: user ? (user.first_name + (user.last_name ? (' ' + user.last_name) : '')) : '',
-       username: user && user.username ? user.username : '',
-       comment: $comment.value || '',
-       items
-     };
+    const payload = {
+      telegram_id: user ? String(user.id) : '',
+      language,
+      phone: '',
+      full_name: user ? (user.first_name + (user.last_name?(' '+user.last_name):'')) : '',
+      username: user && user.username ? user.username : '',
+      comment: ($comment?.value || ''),
+      address: ($address?.value || ''),
+      whatsapp: ($whatsapp?.value || ''),
+      email: ($email?.value || ''),
+      items
+    };
     try{
       $checkout.disabled = true;
-      const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       const data = await res.json();
-      if (data.status === 'ok'){
-        const okText = language==='RU' ? '✅ Заказ принят!' : (language==='EN' ? '✅ Order placed!' : '✅ Buyurtma qabul qilindi!');
-        if (tg) tg.showAlert(okText);
+      if (data.status==='ok'){
+        if (tg) tg.showAlert(t('✅ Buyurtma qabul qilindi!','✅ Заказ принят!','✅ Order placed!'));
         if (tg) tg.close();
-      }else{
-        const errText = language==='RU' ? 'Ошибка. Попробуйте снова.' : (language==='EN' ? 'Error. Please try again.' : 'Xatolik. Qayta urinib ko‘ring.');
-        if (tg) tg.showAlert(errText);
+      } else {
+        if (tg) tg.showAlert(t('Xatolik. Qayta urinib ko‘ring.','Ошибка. Попробуйте снова.','Error. Please try again.'));
       }
     }catch(e){
       console.error('Order failed', e);
-      const errText = language==='RU' ? 'Произошла ошибка' : (language==='EN' ? 'An error occurred' : 'Xatolik yuz berdi');
-      if (tg) tg.showAlert(errText);
-    }finally{
-      $checkout.disabled = false;
-    }
+      if (tg) tg.showAlert(t('Xatolik yuz berdi','Произошла ошибка','An error occurred'));
+    }finally{ $checkout.disabled = false; }
   }
 
   function initTexts(){
     const title = document.getElementById('title');
     const totalLabel = document.getElementById('totalLabel');
-    if (language === 'RU'){
-      title.textContent = 'Каталог';
-      totalLabel.textContent = 'Итого:';
-      $checkout.textContent = 'Оформить заказ';
-      $comment.placeholder = 'Комментарий';
-    } else if (language === 'EN') {
-      title.textContent = 'Catalog';
-      totalLabel.textContent = 'Total:';
-      $checkout.textContent = 'Checkout';
-      $comment.placeholder = 'Comment';
+    if (language==='RU'){
+      if (title) title.textContent='Каталог';
+      if (totalLabel) totalLabel.textContent='Итого:';
+      if ($checkout) $checkout.textContent='Оформить заказ';
+      if ($comment) $comment.placeholder='Комментарий';
+      if ($address) $address.placeholder='Адрес';
+    } else if (language==='EN'){
+      if (title) title.textContent='Catalog';
+      if (totalLabel) totalLabel.textContent='Total:';
+      if ($checkout) $checkout.textContent='Checkout';
+      if ($comment) $comment.placeholder='Comment';
+      if ($address) $address.placeholder='Address';
     } else {
-      title.textContent = 'Katalog';
-      totalLabel.textContent = 'Jami:';
-      $checkout.textContent = 'Buyurtma berish';
-      $comment.placeholder = 'Izoh';
+      if (title) title.textContent='Katalog';
+      if (totalLabel) totalLabel.textContent='Jami:';
+      if ($checkout) $checkout.textContent='Buyurtma berish';
+      if ($comment) $comment.placeholder='Izoh';
+      if ($address) $address.placeholder='Manzil';
     }
   }
 
-  language = detectLanguage();
-  initTexts();
-  // Ensure user profile exists on backend (link orders to user)
-  try{
-    const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-    if (user){
-      await fetch(`/api/user`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          telegram_id: String(user.id),
-          language,
-          full_name: user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
-        })
-      });
-    }
-  }catch(e){ /* ignore */ }
-  loadAll();
-  $checkout.addEventListener('click', submitOrder);
+  // boot
+  (async function(){
+    language = detectLanguage();
+    initTexts();
+    await upsertUser();
+    await loadAll();
+  })();
+
+  if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+

@@ -82,6 +82,9 @@ def create_order(request):
     phone = payload.get('phone')
     full_name = payload.get('full_name')
     comment = payload.get('comment') or ''
+    address = payload.get('address') or ''
+    contact_whatsapp = payload.get('whatsapp') or ''
+    contact_email = payload.get('email') or ''
     items = payload.get('items') or []
     username = payload.get('username')
 
@@ -103,7 +106,14 @@ def create_order(request):
     products_map = {p.id: p for p in Product.objects.filter(id__in=product_ids, is_active=True)}
 
     order_total = Decimal('0.00')
-    order = Order.objects.create(user=user, total=Decimal('0.00'), comment=comment)
+    order = Order.objects.create(
+        user=user,
+        total=Decimal('0.00'),
+        comment=comment,
+        address=address,
+        contact_whatsapp=contact_whatsapp,
+        contact_email=contact_email,
+    )
 
     for it in items:
         pid = int(it.get('product_id'))
@@ -123,7 +133,10 @@ def create_order(request):
         f"New order #{order.id}",
         f"User: {user.full_name or ''} ({user.telegram_id})",
         f"Phone: {user.phone or ''}",
+        f"WhatsApp: {order.contact_whatsapp or ''}",
+        f"Email: {order.contact_email or ''}",
         f"Lang: {user.language or ''}",
+        f"Address: {address}",
         f"Comment: {comment}",
         "Items:",
     ]
@@ -180,30 +193,51 @@ def my_orders(request):
 
 
 @csrf_exempt
-@require_POST
 def upsert_user(request):
-    try:
-        payload = json.loads(request.body.decode('utf-8'))
-    except Exception:
-        return HttpResponseBadRequest('Invalid JSON')
+    if request.method == 'GET':
+        telegram_id = request.GET.get('telegram_id') or ''
+        if not telegram_id:
+            return JsonResponse({'exists': False})
+        try:
+            user = UserProfile.objects.get(telegram_id=str(telegram_id))
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'exists': False})
+        return JsonResponse({
+            'exists': True,
+            'user': {
+                'telegram_id': user.telegram_id,
+                'language': user.language,
+                'phone': user.phone,
+                'full_name': user.full_name,
+                'username': getattr(user, 'username', ''),
+            }
+        })
 
-    telegram_id = str(payload.get('telegram_id') or '').strip()
-    if not telegram_id:
-        return HttpResponseBadRequest('telegram_id required')
+    if request.method == 'POST':
+        try:
+            payload = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('Invalid JSON')
 
-    language = payload.get('language')
-    phone = payload.get('phone')
-    full_name = payload.get('full_name')
-    username = payload.get('username')
+        telegram_id = str(payload.get('telegram_id') or '').strip()
+        if not telegram_id:
+            return HttpResponseBadRequest('telegram_id required')
 
-    user, _ = UserProfile.objects.get_or_create(telegram_id=telegram_id)
-    if language:
-        user.language = language
-    if phone:
-        user.phone = phone
-    if full_name:
-        user.full_name = full_name
-    if username:
-        user.username = username
-    user.save()
-    return JsonResponse({'status': 'ok'})
+        language = payload.get('language')
+        phone = payload.get('phone')
+        full_name = payload.get('full_name')
+        username = payload.get('username')
+
+        user, _ = UserProfile.objects.get_or_create(telegram_id=telegram_id)
+        if language:
+            user.language = language
+        if phone:
+            user.phone = phone
+        if full_name:
+            user.full_name = full_name
+        if username:
+            user.username = username
+        user.save()
+        return JsonResponse({'status': 'ok'})
+
+    return HttpResponseBadRequest('Unsupported method')

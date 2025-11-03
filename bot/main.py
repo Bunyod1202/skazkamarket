@@ -181,6 +181,21 @@ def after_onboarding_message(chat_id):
 @bot.message_handler(commands=['start'])
 def handle_start(msg):
     chat_id = msg.chat.id
+    # If profile exists (has phone and full_name), skip onboarding
+    try:
+        import requests as _rq
+        resp = _rq.get(BASE_URL.rstrip('/') + '/api/user', params={'telegram_id': str(chat_id)}, timeout=10)
+        if resp.ok:
+            info = resp.json()
+            if info.get('exists'):
+                u = info.get('user') or {}
+                if u.get('full_name') and u.get('phone'):
+                    st = {'stage': 'done', 'cart': {}, 'language': (u.get('language') or 'UZ')}
+                    STATE[chat_id] = st
+                    after_onboarding_message(chat_id)
+                    return
+    except Exception:
+        pass
     STATE[chat_id] = {'stage': 'language', 'cart': {}}
     bot.send_message(chat_id, 'Tilni tanlang / Выберите язык', reply_markup=start_keyboard())
 
@@ -215,6 +230,17 @@ def handle_text(msg):
         st['full_name'] = text
         st['stage'] = 'done'
         STATE[chat_id] = st
+        # Persist full profile to backend
+        try:
+            import requests as _rq
+            _rq.post(BASE_URL.rstrip('/') + '/api/user', json={
+                'telegram_id': str(chat_id),
+                'language': st.get('language'),
+                'phone': st.get('phone'),
+                'full_name': st.get('full_name')
+            }, timeout=10)
+        except Exception:
+            pass
         after_onboarding_message(chat_id)
         return
 
@@ -252,6 +278,16 @@ def handle_contact(msg):
         bot.send_message(chat_id, 'Введите ваше полное имя (ФИО)')
     else:
         bot.send_message(chat_id, 'To‘liq ismingizni kiriting (FIO)')
+    # Persist phone to backend
+    try:
+        import requests as _rq
+        _rq.post(BASE_URL.rstrip('/') + '/api/user', json={
+            'telegram_id': str(chat_id),
+            'language': st.get('language'),
+            'phone': phone
+        }, timeout=10)
+    except Exception:
+        pass
 
 
 @bot.callback_query_handler(func=lambda c: True)

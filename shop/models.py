@@ -55,6 +55,9 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='new')
+    address = models.TextField(blank=True, null=True)
+    contact_whatsapp = models.CharField(max_length=64, blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
