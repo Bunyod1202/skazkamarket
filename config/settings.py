@@ -90,7 +90,11 @@ BOT_TOKEN = os.getenv('BOT_TOKEN', '')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID', '')
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000')
 
-# Optionally trust origins for CSRF when deployed (e.g., https://*.up.railway.app)
-CSRF_TRUSTED_ORIGINS = [
-    BASE_URL if BASE_URL.startswith('http') else f'http://{BASE_URL}',
-]
+# CSRF trusted origins
+_csrf_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if _csrf_env:
+    CSRF_TRUSTED_ORIGINS = [o for o in _csrf_env.split(',') if o]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        BASE_URL if BASE_URL.startswith('http') else f'http://{BASE_URL}',
+    ]
