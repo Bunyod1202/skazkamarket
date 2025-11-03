@@ -144,10 +144,10 @@ def is_https(url: str) -> bool:
     return url.lower().startswith('https://')
 
 
-def main_menu_keyboard(st):
+def main_menu_keyboard(st, chat_id):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    webapp_url = BASE_URL.rstrip('/') + '/webapp/'
-    orders_url = BASE_URL.rstrip('/') + '/order/'
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
 
     # Localized labels styled like wide menu buttons
     menu_text = lang_label(st, '✏️ MAVZUNI TANLAYMIZ ◻️', '✏️ ВЫБРАТЬ РАЗДЕЛ ◻️')
@@ -166,6 +166,7 @@ def main_menu_keyboard(st):
 
     mk.row(menu_btn)
     mk.row(orders_btn)
+    mk.row(types.KeyboardButton('🌐 Til / Язык / Language'))
     return mk
 
 
@@ -174,7 +175,7 @@ def after_onboarding_message(chat_id):
     bot.send_message(
         chat_id,
         lang_label(st, 'Xush kelibsiz! Pastdagi menyudan tanlang.', 'Добро пожаловать! Выберите действие ниже.'),
-        reply_markup=main_menu_keyboard(st),
+        reply_markup=main_menu_keyboard(st, chat_id),
     )
 
 
