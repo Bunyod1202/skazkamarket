@@ -170,6 +170,30 @@ def main_menu_keyboard(st, chat_id):
     return mk
 
 
+# Quick open helpers for typed commands (Menu / My Orders)
+@bot.message_handler(func=lambda m: isinstance(m.text, str) and any(k in m.text.upper() for k in ['MENU', 'МЕНЮ', 'MAVZUNI']))
+def quick_open_menu(m):
+    chat_id = m.chat.id
+    st = get_state(chat_id)
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
+    if not is_https(webapp_url):
+        bot.send_message(chat_id, f"Menyu: {webapp_url}", reply_markup=main_menu_keyboard(st, chat_id))
+    else:
+        # send keyboard with WebApp button; user taps it to open
+        bot.send_message(chat_id, '📦', reply_markup=main_menu_keyboard(st, chat_id))
+
+
+@bot.message_handler(func=lambda m: isinstance(m.text, str) and any(k in m.text.upper() for k in ['MY ORDERS', 'МОИ ЗАКАЗЫ', 'BUYURTMALAR']))
+def quick_open_orders(m):
+    chat_id = m.chat.id
+    st = get_state(chat_id)
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+    if not is_https(orders_url):
+        bot.send_message(chat_id, f"Buyurtmalarim: {orders_url}", reply_markup=main_menu_keyboard(st, chat_id))
+    else:
+        bot.send_message(chat_id, '🧾', reply_markup=main_menu_keyboard(st, chat_id))
+
+
 # Language change entry: react to the bottom "Language" button at any time
 @bot.message_handler(func=lambda m: isinstance(m.text, str) and (
     'language' in m.text.lower() or 'язык' in m.text.lower() or 'til' in m.text.lower()
