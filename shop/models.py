@@ -6,9 +6,13 @@ class Category(models.Model):
     name_ru = models.CharField(max_length=255)
     name_en = models.CharField(max_length=255, blank=True, default='')
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    sort_order = models.PositiveIntegerField(default=0, db_index=True)
 
     def __str__(self):
         return self.name_uz
+
+    class Meta:
+        ordering = ['sort_order', 'id']
 
 
 class Product(models.Model):
@@ -19,9 +23,13 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0, db_index=True)
 
     def __str__(self):
         return self.name_uz
+
+    class Meta:
+        ordering = ['sort_order', 'id']
 
 
 class UserProfile(models.Model):
@@ -29,6 +37,7 @@ class UserProfile(models.Model):
     language = models.CharField(max_length=4, blank=True, null=True)
     phone = models.CharField(max_length=32, blank=True, null=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
+    username = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

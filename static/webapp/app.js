@@ -1,4 +1,4 @@
-(function(){
+(async function(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg) tg.expand();
 
@@ -119,14 +119,15 @@
     const items = Array.from(cart.values()).map(({product, qty}) => ({ product_id: product.id, quantity: qty }));
     if (!items.length) return;
     const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-    const payload = {
-      telegram_id: user ? String(user.id) : '',
-      language,
-      phone: '',
-      full_name: user ? (user.first_name + (user.last_name ? (' ' + user.last_name) : '')) : '',
-      comment: $comment.value || '',
-      items
-    };
+     const payload = {
+       telegram_id: user ? String(user.id) : '',
+       language,
+       phone: '',
+       full_name: user ? (user.first_name + (user.last_name ? (' ' + user.last_name) : '')) : '',
+       username: user && user.username ? user.username : '',
+       comment: $comment.value || '',
+       items
+     };
     try{
       $checkout.disabled = true;
       const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });

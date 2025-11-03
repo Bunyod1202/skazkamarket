@@ -21,12 +21,13 @@ def product_to_dict(request, p: Product):
         'price': float(p.price),
         'image': image_url,
         'category_id': p.category_id,
+        'sort_order': getattr(p, 'sort_order', 0),
     }
 
 
 @require_GET
 def products(request):
-    qs = Product.objects.filter(is_active=True).select_related('category')
+    qs = Product.objects.filter(is_active=True).select_related('category').order_by('sort_order', 'id')
     data = [product_to_dict(request, p) for p in qs]
     return JsonResponse({'products': data})
 
@@ -36,7 +37,7 @@ def categories(request):
     qs = (
         Category.objects
         .annotate(active_count=Count('products', filter=Q(products__is_active=True)))
-        .order_by('id')
+        .order_by('sort_order', 'id')
     )
     data = [
         {
@@ -46,6 +47,7 @@ def categories(request):
             'name_en': c.name_en,
             'image': (request.build_absolute_uri(c.image.url) if c.image else ''),
             'count': c.active_count,
+            'sort_order': getattr(c, 'sort_order', 0),
         }
         for c in qs
     ]
@@ -81,6 +83,7 @@ def create_order(request):
     full_name = payload.get('full_name')
     comment = payload.get('comment') or ''
     items = payload.get('items') or []
+    username = payload.get('username')
 
     if not items:
         return HttpResponseBadRequest('Cart is empty')
@@ -92,6 +95,8 @@ def create_order(request):
         user.phone = phone
     if full_name:
         user.full_name = full_name
+    if username:
+        user.username = username
     user.save()
 
     product_ids = [int(i.get('product_id')) for i in items if i.get('product_id')]
@@ -189,6 +194,7 @@ def upsert_user(request):
     language = payload.get('language')
     phone = payload.get('phone')
     full_name = payload.get('full_name')
+    username = payload.get('username')
 
     user, _ = UserProfile.objects.get_or_create(telegram_id=telegram_id)
     if language:
@@ -197,5 +203,7 @@ def upsert_user(request):
         user.phone = phone
     if full_name:
         user.full_name = full_name
+    if username:
+        user.username = username
     user.save()
     return JsonResponse({'status': 'ok'})
