@@ -43,7 +43,9 @@
       const item = document.createElement('div');
       item.className = 'cat' + (selectedCategory === id ? ' active' : '');
       item.dataset.id = id;
-      item.innerHTML = `<div class="name">${name}</div><div class="count">${count}</div>`;
+      const cat = allCategories.find(c => String(c.id) === String(id));
+      const thumb = (cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20';
+      item.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
       item.addEventListener('click', () => {
         selectedCategory = id;
         renderCategories();
@@ -169,6 +171,21 @@
 
   language = detectLanguage();
   initTexts();
+  // Ensure user profile exists on backend (link orders to user)
+  try{
+    const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+    if (user){
+      await fetch(`/api/user`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          telegram_id: String(user.id),
+          language,
+          full_name: user.first_name + (user.last_name ? (' ' + user.last_name) : ''),
+        })
+      });
+    }
+  }catch(e){ /* ignore */ }
   loadAll();
   $checkout.addEventListener('click', submitOrder);
 })();

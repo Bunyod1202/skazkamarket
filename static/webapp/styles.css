@@ -7,10 +7,12 @@ h1{ font-size:20px; margin:0 }
 .layout{ display:grid; grid-template-columns: 260px 1fr; gap:16px }
 .sidebar{ background:var(--card); border-radius:12px; padding:10px; max-height:65vh; overflow:auto }
 .cat-list{ display:flex; flex-direction:column; gap:8px }
-.cat{ background:#1d2a3a; border-radius:10px; padding:10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border:1px solid transparent }
+.cat-scroll{ scrollbar-width: thin }
+.cat{ background:#1d2a3a; border-radius:10px; padding:8px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border:1px solid transparent; gap:10px }
+.cat .thumb{ width:28px; height:28px; border-radius:6px; object-fit:cover; background:#0b0f16; flex:0 0 28px }
 .cat:hover{ border-color:#284057 }
 .cat.active{ border-color:var(--accent); background:#173149 }
-.cat .name{ font-size:14px }
+.cat .name{ font-size:14px; flex:1 1 auto }
 .cat .count{ background:#0f1926; color:var(--muted); border-radius:8px; padding:2px 8px; font-size:12px }
 .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px }
 .card{ background:var(--card); border-radius:12px; overflow:hidden; display:flex; flex-direction:column }
@@ -26,3 +28,13 @@ h1{ font-size:20px; margin:0 }
 .cart-summary{ display:flex; justify-content:space-between; align-items:center; font-size:16px }
 #checkout{ background:#15a05e; color:#fff; border:none; padding:12px; border-radius:10px; font-size:16px; cursor:pointer }
 #checkout:disabled{ background:#29503d; cursor:not-allowed }
+
+/* Mobile responsiveness */
+@media (max-width: 768px){
+  .layout{ grid-template-columns: 1fr; gap:12px }
+  .sidebar{ max-height:none; padding:8px }
+  .cat-list{ flex-direction:row; gap:8px }
+  .cat-scroll{ overflow-x:auto; padding-bottom:6px }
+  .cat{ flex-direction:row; min-width:180px }
+  .card img{ height:120px }
+}

@@ -172,3 +172,30 @@ def my_orders(request):
             'items': items,
         })
     return JsonResponse({'orders': out})
+
+
+@csrf_exempt
+@require_POST
+def upsert_user(request):
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest('Invalid JSON')
+
+    telegram_id = str(payload.get('telegram_id') or '').strip()
+    if not telegram_id:
+        return HttpResponseBadRequest('telegram_id required')
+
+    language = payload.get('language')
+    phone = payload.get('phone')
+    full_name = payload.get('full_name')
+
+    user, _ = UserProfile.objects.get_or_create(telegram_id=telegram_id)
+    if language:
+        user.language = language
+    if phone:
+        user.phone = phone
+    if full_name:
+        user.full_name = full_name
+    user.save()
+    return JsonResponse({'status': 'ok'})
