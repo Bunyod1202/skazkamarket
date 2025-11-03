@@ -17,6 +17,7 @@ def product_to_dict(request, p: Product):
         'id': p.id,
         'name_uz': p.name_uz,
         'name_ru': p.name_ru,
+        'name_en': getattr(p, 'name_en', '') or '',
         'price': float(p.price),
         'image': image_url,
         'category_id': p.category_id,
@@ -42,6 +43,8 @@ def categories(request):
             'id': c.id,
             'name_uz': c.name_uz,
             'name_ru': c.name_ru,
+            'name_en': c.name_en,
+            'image': (request.build_absolute_uri(c.image.url) if c.image else ''),
             'count': c.active_count,
         }
         for c in qs
@@ -156,6 +159,7 @@ def my_orders(request):
                 'product_id': it.product_id,
                 'product_name_uz': it.product.name_uz,
                 'product_name_ru': it.product.name_ru,
+                'product_name_en': getattr(it.product, 'name_en', '') or '',
                 'quantity': it.quantity,
                 'price': float(it.price),
             })

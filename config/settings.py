@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 import dj_database_url
-
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -98,3 +98,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         BASE_URL if BASE_URL.startswith('http') else f'http://{BASE_URL}',
     ]
+
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")

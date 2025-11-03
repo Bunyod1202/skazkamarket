@@ -34,7 +34,7 @@
       const lang = detectLang();
       if (lang === 'RU') $title.textContent = 'Мои заказы';
 
-      function t(uz, ru){ return lang === 'RU' ? ru : uz; }
+      function t(uz, ru, en){ return lang === 'RU' ? ru : (lang==='EN'? en : uz); }
 
       async function load(){
         const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
@@ -45,13 +45,13 @@
           render(data.orders || []);
         }catch(e){
           console.error('orders failed', e);
-          $list.innerHTML = `<p>${t('Xatolik yuz berdi', 'Произошла ошибка')}</p>`;
+          $list.innerHTML = `<p>${t('Xatolik yuz berdi', 'Произошла ошибка', 'An error occurred')}</p>`;
         }
       }
 
       function render(orders){
         if (!orders.length){
-          $list.innerHTML = `<p>${t('Sizda buyurtmalar yo\'q.', 'У вас нет заказов.')}</p>`;
+          $list.innerHTML = `<p>${t('Sizda buyurtmalar yo\'q.', 'У вас нет заказов.', 'You have no orders.')}</p>`;
           return;
         }
         const frag = document.createDocumentFragment();
@@ -62,7 +62,7 @@
           card.innerHTML = `
             <div class="content">
               <div class="name">#${o.id} · ${o.status} · ${new Date(o.created_at).toLocaleString()}</div>
-              <div class="price">${t('Jami', 'Итого')}: ${o.total}</div>
+              <div class="price">${t('Jami', 'Итого', 'Total')}: ${o.total}</div>
               <div class="items">${items}</div>
             </div>
           `;
@@ -77,4 +77,3 @@
   </script>
 </body>
 </html>
-

@@ -130,7 +130,7 @@ def send_cart(chat_id, message_id=None):
 
 def start_keyboard():
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    mk.row(types.KeyboardButton('UZ'), types.KeyboardButton('RU'))
+    mk.row(types.KeyboardButton('UZ'), types.KeyboardButton('RU'), types.KeyboardButton('EN'))
     return mk
 
 
@@ -197,6 +197,8 @@ def handle_text(msg):
             st['language'] = 'UZ'
         elif text.upper().startswith('RU'):
             st['language'] = 'RU'
+        elif text.upper().startswith('EN'):
+            st['language'] = 'EN'
         else:
             bot.send_message(chat_id, 'Please choose UZ or RU / Пожалуйста, выберите UZ или RU', reply_markup=start_keyboard())
             return
