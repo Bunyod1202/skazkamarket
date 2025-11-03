@@ -18,8 +18,9 @@
     if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) return 'UZ';
     const code = (tg.initDataUnsafe.user.language_code || 'uz').toLowerCase();
     if (code.startsWith('ru')) return 'RU';
+    if (code.startsWith('en')) return 'EN';
     if (code.startsWith('uz')) return 'UZ';
-    return 'UZ';
+    return 'EN';
   }
 
   function formatPrice(v){
@@ -51,9 +52,10 @@
       return item;
     };
     const totalCount = allProducts.length;
-    $categories.appendChild(makeCat('all', language==='RU'?'Все':'Barchasi', totalCount));
+    const allLabel = (language==='RU') ? 'Все' : (language==='EN' ? 'All' : 'Barchasi');
+    $categories.appendChild(makeCat('all', allLabel, totalCount));
     allCategories.forEach(c => {
-      const name = language==='RU' ? c.name_ru : c.name_uz;
+      const name = language==='RU' ? c.name_ru : (language==='EN' ? (c.name_en || c.name_uz) : c.name_uz);
       $categories.appendChild(makeCat(String(c.id), name, c.count));
     });
   }
@@ -67,7 +69,7 @@
       card.innerHTML = `
         <img src="${p.image || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="">
         <div class="content">
-          <div class="name">${language === 'RU' ? p.name_ru : p.name_uz}</div>
+          <div class="name">${language === 'RU' ? p.name_ru : (language === 'EN' ? (p.name_en || p.name_uz) : p.name_uz)}</div>
           <div class="price">${formatPrice(p.price)} UZS</div>
           <div class="qty">
             <button class="dec">-</button>
@@ -128,14 +130,17 @@
       const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
       if (data.status === 'ok'){
-        if (tg) tg.showAlert('✅ Buyurtma qabul qilindi!');
+        const okText = language==='RU' ? '✅ Заказ принят!' : (language==='EN' ? '✅ Order placed!' : '✅ Buyurtma qabul qilindi!');
+        if (tg) tg.showAlert(okText);
         if (tg) tg.close();
       }else{
-        if (tg) tg.showAlert('Xatolik. Qayta urinib ko‘ring.');
+        const errText = language==='RU' ? 'Ошибка. Попробуйте снова.' : (language==='EN' ? 'Error. Please try again.' : 'Xatolik. Qayta urinib ko‘ring.');
+        if (tg) tg.showAlert(errText);
       }
     }catch(e){
       console.error('Order failed', e);
-      if (tg) tg.showAlert('Xatolik yuz berdi');
+      const errText = language==='RU' ? 'Произошла ошибка' : (language==='EN' ? 'An error occurred' : 'Xatolik yuz berdi');
+      if (tg) tg.showAlert(errText);
     }finally{
       $checkout.disabled = false;
     }
@@ -149,6 +154,11 @@
       totalLabel.textContent = 'Итого:';
       $checkout.textContent = 'Оформить заказ';
       $comment.placeholder = 'Комментарий';
+    } else if (language === 'EN') {
+      title.textContent = 'Catalog';
+      totalLabel.textContent = 'Total:';
+      $checkout.textContent = 'Checkout';
+      $comment.placeholder = 'Comment';
     } else {
       title.textContent = 'Katalog';
       totalLabel.textContent = 'Jami:';

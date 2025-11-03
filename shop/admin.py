@@ -4,15 +4,15 @@ from .models import Category, Product, UserProfile, Order, OrderItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_uz', 'name_ru')
-    search_fields = ('name_uz', 'name_ru')
+    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'image')
+    search_fields = ('name_uz', 'name_ru', 'name_en')
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_uz', 'name_ru', 'category', 'price', 'is_active')
+    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'category', 'price', 'is_active')
     list_filter = ('category', 'is_active')
-    search_fields = ('name_uz', 'name_ru')
+    search_fields = ('name_uz', 'name_ru', 'name_en')
 
 
 @admin.register(UserProfile)
