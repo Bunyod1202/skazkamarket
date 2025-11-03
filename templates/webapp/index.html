@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Market</title>
+  <link rel="stylesheet" href="/static/webapp/styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 id="title">Katalog</h1>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div id="categories" class="cat-list"></div>
+      </aside>
+      <main>
+        <div id="products" class="grid"></div>
+      </main>
+    </div>
+
+    <aside class="cart">
+      <textarea id="comment" placeholder="Izoh / Комментарий"></textarea>
+      <div class="cart-summary">
+        <span id="totalLabel">Jami:</span>
+        <span id="total">0</span>
+      </div>
+      <button id="checkout">Buyurtma berish / Оформить заказ</button>
+    </aside>
+  </div>
+
+  <script>
+    window.API_BASE = '/api';
+  </script>
+  <script src="/static/webapp/app.js"></script>
+</body>
+</html>
