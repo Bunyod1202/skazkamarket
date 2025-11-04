@@ -101,6 +101,8 @@
       const cat = allCategories.find(c => String(c.id)===String(id));
       const thumb = absMedia((cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20');
       el.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
+      const img = el.querySelector('img.thumb');
+      if (img) img.addEventListener('error', () => { img.src = 'https://via.placeholder.com/56x56?text=%20'; });
       el.addEventListener('click', () => { selectedCategory = id; renderCategories(); renderProducts(); });
       return el;
     };
@@ -129,6 +131,8 @@
             <button class="inc">+</button>
           </div>
         </div>`;
+      const img = card.querySelector('img');
+      if (img) img.addEventListener('error', () => { img.src = 'https://via.placeholder.com/300x200?text=No+Image'; });
       const q = card.querySelector('.q');
       const inc = card.querySelector('.inc');
       const dec = card.querySelector('.dec');
