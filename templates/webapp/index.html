@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
@@ -25,13 +25,13 @@
     <aside class="cart">
       <input id="whatsapp" type="text" placeholder="WhatsApp (ixtiyoriy)" />
       <input id="email" type="email" placeholder="Email (ixtiyoriy)" />
-      <textarea id="address" placeholder="Manzil / Адрес / Address"></textarea>
-      <textarea id="comment" placeholder="Izoh / Комментарий"></textarea>
+      <textarea id="address" placeholder="Manzil / РђРґСЂРµСЃ / Address"></textarea>
+      <textarea id="comment" placeholder="Izoh / РљРѕРјРјРµРЅС‚Р°СЂРёР№"></textarea>
       <div class="cart-summary">
         <span id="totalLabel">Jami:</span>
         <span id="total">0</span>
       </div>
-      <button id="checkout">Buyurtma berish / Оформить заказ</button>
+      <button id="checkout">Buyurtma berish / РћС„РѕСЂРјРёС‚СЊ Р·Р°РєР°Р·</button>
     </aside>
   </div>
 
@@ -39,5 +39,7 @@
     window.API_BASE = '/api';
   </script>
   <script src="/static/webapp/app.js?v=20251103"></script>
+  <!-- Floating cart button -->
+  <button id="cartBtn" type="button" aria-label="Cart">🛒</button>
 </body>
 </html>

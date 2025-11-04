@@ -84,9 +84,7 @@
   function t(uz, ru, en){ return language==='RU' ? ru : (language==='EN' ? en : uz); }
   function fmt(v){ return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
 
-  function updateTotal(){
-    let sum = 0;
-    for (const [, {product, qty}] of cart) sum += Number(product.price) * qty;
+  function updateTotal(){\n    let sum = 0; let count = 0;\n    for (const [, {product, qty}] of cart){ sum += Number(product.price) * qty; count += qty; }\n    if () .textContent = fmt(sum) + ' UZS';\n    if () .disabled = sum <= 0;\n    if (){\n      const label = t(🛒 Savat (), 🛒 Корзина (), 🛒 Cart ());\n      .textContent = label;\n      .disabled = count <= 0;\n    }\n  }] of cart) sum += Number(product.price) * qty;
     if ($total) $total.textContent = fmt(sum) + ' UZS';
     if ($checkout) $checkout.disabled = sum <= 0;
   }
@@ -313,8 +311,9 @@
   }language = detectLanguage();
     initTexts();
     await upsertUser();
-    await loadAll();
+    await loadAll();\n    if (){\n      .addEventListener('click', ()=>{ const p = document.querySelector('.cart'); if (p) p.scrollIntoView({behavior:'smooth', block:'start'}); });\n      updateTotal();\n    }
   })();
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+
