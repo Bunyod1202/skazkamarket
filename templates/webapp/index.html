@@ -9,9 +9,7 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1 id="title">Katalog</h1>
-    </header>
+    <header>\n      <h1 id="title">Katalog</h1>\n      <button id="cartBtn" type="button" aria-label="Cart">🛒</button>\n    </header>
 
     <div class="layout">
       <aside class="sidebar">
@@ -22,7 +20,7 @@
       </main>
     </div>
 
-    <aside class="cart">
+    <aside id="cartPanel" class="cart">
       <input id="whatsapp" type="text" placeholder="WhatsApp (ixtiyoriy)" />
       <input id="email" type="email" placeholder="Email (ixtiyoriy)" />
       <textarea id="address" placeholder="Manzil / РђРґСЂРµСЃ / Address"></textarea>
@@ -33,13 +31,9 @@
       </div>
       <button id="checkout">Buyurtma berish / РћС„РѕСЂРјРёС‚СЊ Р·Р°РєР°Р·</button>
     </aside>
-  </div>
-
-  <script>
+  </div>\n\n  <div id="totalBar"><span id="totalBarLabel">Jami:</span> <span id="totalBarSum">0</span></div>\n\n  <script>
     window.API_BASE = '/api';
   </script>
-  <script src="/static/webapp/app.js?v=20251103"></script>
-  <!-- Floating cart button -->
-  <button id="cartBtn" type="button" aria-label="Cart">🛒</button>
-</body>
+  <script src="/static/webapp/app.js?v=20251103"></script>\n</body>
 </html>
+

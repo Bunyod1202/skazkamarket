@@ -62,14 +62,7 @@
       let code = '';
       if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code){
         code = tg.initDataUnsafe.user.language_code;
-      } else {
-        // Fallback: parse initData string
-        const params = new URLSearchParams(tg && tg.initData ? tg.initData : '');
-        const raw = params.get('user');
-        if (raw){
-          const parsed = JSON.parse(decodeURIComponent(raw));
-          code = parsed && parsed.language_code ? parsed.language_code : '';
-        }
+      } else {\n      if (title) title.textContent='Katalog';\n      if (totalLabel) totalLabel.textContent='Jami:';\n      if () .textContent='Jami:';\n      if () .textContent='Buyurtma berish';\n      if () .placeholder='Izoh';\n      if () .placeholder='Manzil';\n      if () .placeholder='WhatsApp (ixtiyoriy)';\n      if () .placeholder='Email (ixtiyoriy)';\n    }
       }
       if (!code && typeof navigator !== 'undefined') code = navigator.language || navigator.userLanguage || 'en';
       code = (code || 'en').toLowerCase();
@@ -84,7 +77,7 @@
   function t(uz, ru, en){ return language==='RU' ? ru : (language==='EN' ? en : uz); }
   function fmt(v){ return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
 
-  function updateTotal(){\n    let sum = 0; let count = 0;\n    for (const [, {product, qty}] of cart){ sum += Number(product.price) * qty; count += qty; }\n    if () .textContent = fmt(sum) + ' UZS';\n    if () .disabled = sum <= 0;\n    if (){\n      const label = t(🛒 Savat (), 🛒 Корзина (), 🛒 Cart ());\n      .textContent = label;\n      .disabled = count <= 0;\n    }\n  }] of cart) sum += Number(product.price) * qty;
+  function updateTotal(){\n    let sum = 0; let count = 0;\n    for (const [, {product, qty}] of cart){ sum += Number(product.price) * qty; count += qty; }\n    if () .textContent = fmt(sum) + ' UZS';\n    if () .textContent = fmt(sum) + ' UZS';\n    if () .disabled = sum <= 0;\n    if (){\n      const label = t(🛒 Savat (), 🛒 Корзина (), 🛒 Cart ());\n      .textContent = label;\n      .disabled = count <= 0;\n    }\n  }] of cart){ sum += Number(product.price) * qty; count += qty; }\n    if () .textContent = fmt(sum) + ' UZS';\n    if () .disabled = sum <= 0;\n    if (){\n      const label = t(🛒 Savat (), 🛒 Корзина (), 🛒 Cart ());\n      .textContent = label;\n      .disabled = count <= 0;\n    }\n  }] of cart) sum += Number(product.price) * qty;
     if ($total) $total.textContent = fmt(sum) + ' UZS';
     if ($checkout) $checkout.disabled = sum <= 0;
   }
@@ -242,9 +235,7 @@
       if (data.status==='ok'){
         if (tg) tg.showAlert(t('✅Buyurtma qabul qilindi!','✅Заказ принят!','✅Order placed!'));
         if (tg) tg.close();
-      } else {
-        if (tg) tg.showAlert(t("❌Xatolik. Qayta urinib ko'ring.",'❌Ошибка. Пожалуйста, попробуйте снова','❌Error. Please try again.'));
-      }
+      } else {\n      if (title) title.textContent='Katalog';\n      if (totalLabel) totalLabel.textContent='Jami:';\n      if () .textContent='Jami:';\n      if () .textContent='Buyurtma berish';\n      if () .placeholder='Izoh';\n      if () .placeholder='Manzil';\n      if () .placeholder='WhatsApp (ixtiyoriy)';\n      if () .placeholder='Email (ixtiyoriy)';\n    }
     }catch(e){
       console.error('Order failed', e);
       if (tg) tg.showAlert(t('❌Xatolik yuz berdi','❌Призошла ошибка','❌An error occurred'));
@@ -254,31 +245,7 @@
   function initTexts(){
     const title = document.getElementById('title');
     const totalLabel = document.getElementById('totalLabel');
-    if (language==='RU'){
-      if (title) title.textContent='Каталог';
-      if (totalLabel) totalLabel.textContent='Итого:';
-      if ($checkout) $checkout.textContent='Купить';
-      if ($comment) $comment.placeholder='Комментарий';
-      if ($address) $address.placeholder='Адрес';
-      if ($whatsapp) $whatsapp.placeholder='WhatsApp (опционально)';
-      if ($email) $email.placeholder='Email (опционально)';
-    } else if (language==='EN'){
-      if (title) title.textContent='Catalog';
-      if (totalLabel) totalLabel.textContent='Total:';
-      if ($checkout) $checkout.textContent='Checkout';
-      if ($comment) $comment.placeholder='Comment';
-      if ($address) $address.placeholder='Address';
-      if ($whatsapp) $whatsapp.placeholder='WhatsApp (optional)';
-      if ($email) $email.placeholder='Email (optional)';
-    } else {
-      if (title) title.textContent='Katalog';
-      if (totalLabel) totalLabel.textContent='Jami:';
-      if ($checkout) $checkout.textContent='Buyurtma berish';
-      if ($comment) $comment.placeholder='Izoh';
-      if ($address) $address.placeholder='Manzil';
-      if ($whatsapp) $whatsapp.placeholder='WhatsApp (ixtiyoriy)';
-      if ($email) $email.placeholder='Email (ixtiyoriy)';
-    }
+    if (language==='RU'){\n      if (title) title.textContent='Каталог';\n      if (totalLabel) totalLabel.textContent='Итого:';\n      if () .textContent='Итого:';\n      if () .textContent='Оформить заказ';\n      if () .placeholder='Комментарий';\n      if () .placeholder='Адрес';\n      if () .placeholder='WhatsApp (опционально)';\n      if () .placeholder='Email (опционально)';\n    } else if (language==='EN'){\n      if (title) title.textContent='Catalog';\n      if (totalLabel) totalLabel.textContent='Total:';\n      if () .textContent='Total:';\n      if () .textContent='Checkout';\n      if () .placeholder='Comment';\n      if () .placeholder='Address';\n      if () .placeholder='WhatsApp (optional)';\n      if () .placeholder='Email (optional)';\n    } else {\n      if (title) title.textContent='Katalog';\n      if (totalLabel) totalLabel.textContent='Jami:';\n      if () .textContent='Jami:';\n      if () .textContent='Buyurtma berish';\n      if () .placeholder='Izoh';\n      if () .placeholder='Manzil';\n      if () .placeholder='WhatsApp (ixtiyoriy)';\n      if () .placeholder='Email (ixtiyoriy)';\n    }
   }
 
   // boot
@@ -293,13 +260,7 @@
       let code = '';
       if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code){
         code = tg.initDataUnsafe.user.language_code;
-      } else {
-        const params = new URLSearchParams(tg && tg.initData ? tg.initData : '');
-        const raw = params.get('user');
-        if (raw){
-          const parsed = JSON.parse(decodeURIComponent(raw));
-          code = parsed && parsed.language_code ? parsed.language_code : '';
-        }
+      } else {\n      if (title) title.textContent='Katalog';\n      if (totalLabel) totalLabel.textContent='Jami:';\n      if () .textContent='Jami:';\n      if () .textContent='Buyurtma berish';\n      if () .placeholder='Izoh';\n      if () .placeholder='Manzil';\n      if () .placeholder='WhatsApp (ixtiyoriy)';\n      if () .placeholder='Email (ixtiyoriy)';\n    }
       }
       if (!code && typeof navigator !== 'undefined') code = navigator.language || navigator.userLanguage || 'en';
       code = (code || 'en').toLowerCase();
@@ -311,9 +272,9 @@
   }language = detectLanguage();
     initTexts();
     await upsertUser();
-    await loadAll();\n    if (){\n      .addEventListener('click', ()=>{ const p = document.querySelector('.cart'); if (p) p.scrollIntoView({behavior:'smooth', block:'start'}); });\n      updateTotal();\n    }
-  })();
+    await loadAll();\n    if (){\n      .addEventListener('click', ()=>{ if(){ .classList.toggle('open'); } });\n      updateTotal();\n    }\n  })();
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+
 
