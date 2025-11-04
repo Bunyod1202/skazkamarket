@@ -227,7 +227,17 @@
     if (!items.length) return;
     const user = await getTelegramUserWithRetry();
     if (!user || !user.id){ if (tg) tg.showAlert(t('Iltimos, botdagi tugma orqali oching','Пожалуйста, откройте через кнопку бота','Please open via the bot button')); return; }
-    const first = user.first_name || ''; const last = user.last_name ? (' ' + user.last_name) : '';
+    const first = user.first_name || ''; const last = user.last_name ? (' ' + user.last_name) : '';    // Validate required address
+    const addr = ($address?.value || '').trim();
+    if (!addr){
+      if (tg) tg.showAlert(t('Manzilni kiriting','Введите адрес','Please enter address'));
+      if($cartPanel && !$cartPanel.classList.contains('open')){
+        $cartPanel.classList.add('open');
+        document.body.classList.add('cart-open');
+      }
+      try{ $address && $address.focus(); }catch(e){}
+      return;
+    }
     const payload = {
       telegram_id: String(user.id),
       language: lang,
@@ -261,4 +271,6 @@
   }
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+
+
 
