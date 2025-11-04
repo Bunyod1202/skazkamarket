@@ -84,7 +84,7 @@
       el.addEventListener('click', () => { selectedCategory = id; renderCategories(); renderProducts(); });
       return el;
     };
-    $categories.appendChild(make('all', t('Barchasi','Все','All'), allProducts.length));
+    $categories.appendChild(make('all', t('Barchasi','??????','All'), allProducts.length));
     allCategories.forEach(c => {
       const name = language==='RU' ? c.name_ru : (language==='EN' ? (c.name_en || c.name_uz) : c.name_uz);
       $categories.appendChild(make(String(c.id), name, c.count));
@@ -191,14 +191,14 @@
     if (!items.length) return;
     const user = await getTelegramUserWithRetry();
     if (!user || !user.id){
-      if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','Откройте через кнопку в боте','Please open via the bot button'));
+      if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','???????????????? ?????????? ???????????? ?? ????????','Please open via the bot button'));
       return;
     }
     const payload = {
       telegram_id: user ? String(user.id) : '',
       language,
       phone: '',
-      full_name: user ? (user.first_name + (user.last_name?(' '+user.last_name):'')) : '',
+      full_name: ((user && user.first_name) ? user.first_name : '') + ((user && user.last_name) ? (' ' + user.last_name) : ''),
       username: user && user.username ? user.username : '',
       comment: ($comment?.value || ''),
       address: ($address?.value || ''),
@@ -211,19 +211,19 @@
       const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok){
         const txt = await res.text().catch(()=> '');
-        if (tg) tg.showAlert((txt && txt.length < 200 ? txt : t('Xatolik. Qayta urinib ko‘ring.','Ошибка. Попробуйте снова.','Error. Please try again.')));
+        if (tg) tg.showAlert((txt && txt.length < 200 ? txt : t('Xatolik. Qayta urinib ko???ring.','????????????. ???????????????????? ??????????.','Error. Please try again.')));
         return;
       }
       const data = await res.json().catch(()=>({status:'error'}));
       if (data.status==='ok'){
-        if (tg) tg.showAlert(t('✅ Buyurtma qabul qilindi!','✅ Заказ принят!','✅ Order placed!'));
+        if (tg) tg.showAlert(t('??? Buyurtma qabul qilindi!','??? ?????????? ????????????!','??? Order placed!'));
         if (tg) tg.close();
       } else {
-        if (tg) tg.showAlert(t('Xatolik. Qayta urinib ko‘ring.','Ошибка. Попробуйте снова.','Error. Please try again.'));
+        if (tg) tg.showAlert(t('Xatolik. Qayta urinib ko???ring.','????????????. ???????????????????? ??????????.','Error. Please try again.'));
       }
     }catch(e){
       console.error('Order failed', e);
-      if (tg) tg.showAlert(t('Xatolik yuz berdi','Произошла ошибка','An error occurred'));
+      if (tg) tg.showAlert(t('Xatolik yuz berdi','?????????????????? ????????????','An error occurred'));
     }finally{ $checkout.disabled = false; }
   }
 
@@ -231,13 +231,13 @@
     const title = document.getElementById('title');
     const totalLabel = document.getElementById('totalLabel');
     if (language==='RU'){
-      if (title) title.textContent='Каталог';
-      if (totalLabel) totalLabel.textContent='Итого:';
-      if ($checkout) $checkout.textContent='Оформить заказ';
-      if ($comment) $comment.placeholder='Комментарий';
-      if ($address) $address.placeholder='Адрес';
-      if ($whatsapp) $whatsapp.placeholder='WhatsApp (необязательно)';
-      if ($email) $email.placeholder='Email (необязательно)';
+      if (title) title.textContent='??????????????';
+      if (totalLabel) totalLabel.textContent='??????????:';
+      if ($checkout) $checkout.textContent='???????????????? ??????????';
+      if ($comment) $comment.placeholder='??????????????????????';
+      if ($address) $address.placeholder='??????????';
+      if ($whatsapp) $whatsapp.placeholder='WhatsApp (??????????????????????????)';
+      if ($email) $email.placeholder='Email (??????????????????????????)';
     } else if (language==='EN'){
       if (title) title.textContent='Catalog';
       if (totalLabel) totalLabel.textContent='Total:';
@@ -267,3 +267,5 @@
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+
+

@@ -372,7 +372,7 @@ def handle_contact(msg):
     if st.get('language') == 'RU':
         bot.send_message(chat_id, 'Полное имя введите (ФИО)')
     elif st.get('language') == 'UZ':
-        bot.send_message(chat_id, 'To???liq ismingizni kiriting (FIO)')
+        bot.send_message(chat_id, "To'liq ismingizni kiriting (FIO)")
     else: 
         bot.send_message(chat_id, 'Enter your full name (FIO)')
     # Persist phone to backend
@@ -382,7 +382,7 @@ def handle_contact(msg):
             'telegram_id': str(chat_id),
             'language': st.get('language'),
             'phone': phone,
-             'full_name': ((getattr(msg.from_user, 'first_name', '') or '') + ((' ' + getattr(msg.from_user, 'last_name', '')) if getattr(msg.from_user, 'last_name', None) else '')),
+            'full_name': ((getattr(msg.from_user, 'first_name', '') or '') + ((' ' + getattr(msg.from_user, 'last_name', '')) if getattr(msg.from_user, 'last_name', None) else '')),
             'username': (getattr(msg.chat, 'username', None) or '')
         }, timeout=10)
     except Exception:
