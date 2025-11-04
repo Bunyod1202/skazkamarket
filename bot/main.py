@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 import requests
 from dotenv import load_dotenv
@@ -337,6 +337,7 @@ def handle_text(msg):
             }, timeout=10)
         except Exception:
             pass
+        after_onboarding_message(chat_id)
         return
 
     # Handle main menu actions from bottom reply keyboard
