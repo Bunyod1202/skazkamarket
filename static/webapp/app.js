@@ -2,6 +2,25 @@
 (function(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg) tg.expand();
+  // Ensure all alert modals include tid for debugging
+  if (typeof getQueryTid !== 'function'){
+    window.getQueryTid = function(){
+      try{
+        const q = new URLSearchParams(location.search);
+        const tid = q.get('tid');
+        return tid && /^\d+$/.test(tid) ? tid : null;
+      }catch(e){ return null; }
+    }
+  }
+  if (tg && typeof tg.showAlert === 'function' && !tg.__wrappedShowAlert){
+    const __orig = tg.showAlert.bind(tg);
+    tg.showAlert = function(message){
+      const tid = (typeof getQueryTid === 'function') ? (getQueryTid() || '') : '';
+      const finalMsg = tid ? String(message || '') + "\nTID: " + tid : String(message || '');
+      return __orig(finalMsg);
+    };
+    tg.__wrappedShowAlert = true;
+  }
 
   const $categories = document.getElementById('categories');
   const $products = document.getElementById('products');
