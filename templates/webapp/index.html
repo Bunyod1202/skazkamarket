@@ -9,7 +9,10 @@
 </head>
 <body>
   <div class="container">
-    <header>\n      <h1 id="title">Katalog</h1>\n      <button id="cartBtn" type="button" aria-label="Cart">🛒</button>\n    </header>
+    <header>
+      <h1 id="title">Katalog</h1>
+      <button id="cartBtn" type="button" aria-label="Cart">🛒</button>
+    </header>
 
     <div class="layout">
       <aside class="sidebar">
@@ -21,19 +24,22 @@
     </div>
 
     <aside id="cartPanel" class="cart">
-      <input id="whatsapp" type="text" placeholder="WhatsApp (ixtiyoriy)" />
-      <input id="email" type="email" placeholder="Email (ixtiyoriy)" />
-      <textarea id="address" placeholder="Manzil / РђРґСЂРµСЃ / Address"></textarea>
-      <textarea id="comment" placeholder="Izoh / РљРѕРјРјРµРЅС‚Р°СЂРёР№"></textarea>
+      <input id="whatsapp" type="text" placeholder="WhatsApp" />
+      <input id="email" type="email" placeholder="Email" />
+      <textarea id="address" placeholder="Manzil / Адрес / Address"></textarea>
+      <textarea id="comment" placeholder="Izoh / Примечание / Comment"></textarea>
       <div class="cart-summary">
         <span id="totalLabel">Jami:</span>
         <span id="total">0</span>
       </div>
-      <button id="checkout">Buyurtma berish / РћС„РѕСЂРјРёС‚СЊ Р·Р°РєР°Р·</button>
+      <button id="checkout">Buyurtma berish/ Заказать/ Order</button>
     </aside>
-  </div>\n\n  <div id="totalBar"><span id="totalBarLabel">Jami:</span> <span id="totalBarSum">0</span></div>\n\n  <script>
+  </div>
+  <div id="totalBar"><span id="totalBarLabel">Jami:</span> <span id="totalBarSum">0</span></div>
+    <script>
     window.API_BASE = '/api';
   </script>
-  <script src="/static/webapp/app.js?v=20251103"></script>\n</body>
+  <script src="/static/webapp/app.js?v=20251103"></script>
+</body>
 </html>
 
