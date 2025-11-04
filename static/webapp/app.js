@@ -99,7 +99,9 @@
       el.className = 'cat' + (selectedCategory===id ? ' active' : '');
       el.dataset.id = id;
       const cat = allCategories.find(c => String(c.id)===String(id));
-      const thumb = absMedia((cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20');
+      const thumb = (id === 'all')
+        ? 'https://i.postimg.cc/4NXyxzcT/supplies.png'
+        : absMedia((cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20');
       el.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
       const img = el.querySelector('img.thumb');
       if (img) img.addEventListener('error', () => { img.src = 'https://via.placeholder.com/56x56?text=%20'; });
