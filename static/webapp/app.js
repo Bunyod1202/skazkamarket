@@ -154,6 +154,9 @@
     await new Promise(r => setTimeout(r, 200));
     u = (tg && tg.initDataUnsafe) ? tg.initDataUnsafe.user : null;
     if (u && u.id) return u;
+    // Final fallback: use tid passed from bot
+    const tid = (typeof getQueryTid === 'function') ? getQueryTid() : null;
+    if (tid) return { id: Number(tid) };
     return parseUserFromInitData();
   }
 
