@@ -1,4 +1,4 @@
-// Telegram WebApp storefront script (clean version)
+﻿// Telegram WebApp storefront script (clean version)
 (function(){
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg) tg.expand();
@@ -36,6 +36,26 @@
   let allProducts = [];
   let allCategories = [];
   let selectedCategory = 'all';
+// Ensure media URLs are absolute HTTPS inside Telegram WebView
+  function absMedia(u){
+    try{
+      if(!u) return '';
+      const loc = window.location;
+      if(/^https?:\/\//i.test(u)){
+        try{
+          const parsed = new URL(u);
+          if(loc.protocol === 'https:' && parsed.protocol === 'http:' && parsed.host === loc.host){
+            return 'https://' + parsed.host + parsed.pathname + parsed.search;
+          }
+        }catch(e){}
+        return u;
+      }
+      if(u[0] !== '/') u = '/' + u;
+      return loc.origin + u;
+    }catch(e){ return u || ''; 
+    }
+  }
+ 
 
   function detectLanguage(){
     try{
@@ -79,12 +99,12 @@
       el.className = 'cat' + (selectedCategory===id ? ' active' : '');
       el.dataset.id = id;
       const cat = allCategories.find(c => String(c.id)===String(id));
-      const thumb = (cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20';
+      const thumb = absMedia((cat && cat.image) ? cat.image : 'https://via.placeholder.com/56x56?text=%20');
       el.innerHTML = `<img class="thumb" src="${thumb}" alt=""><div class="name">${name}</div><div class="count">${count}</div>`;
       el.addEventListener('click', () => { selectedCategory = id; renderCategories(); renderProducts(); });
       return el;
     };
-    $categories.appendChild(make('all', t('Barchasi','??????','All'), allProducts.length));
+    $categories.appendChild(make('all', t('Barchasi','Все','All'), allProducts.length));
     allCategories.forEach(c => {
       const name = language==='RU' ? c.name_ru : (language==='EN' ? (c.name_en || c.name_uz) : c.name_uz);
       $categories.appendChild(make(String(c.id), name, c.count));
@@ -99,7 +119,7 @@
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <img src="${p.image || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="">
+        <img src="${absMedia(p.image) || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="">
         <div class="content">
           <div class="name">${language==='RU'?p.name_ru:(language==='EN'?(p.name_en||p.name_uz):p.name_uz)}</div>
           <div class="price">${fmt(p.price)} UZS</div>
@@ -191,7 +211,7 @@
     if (!items.length) return;
     const user = await getTelegramUserWithRetry();
     if (!user || !user.id){
-      if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','???????????????? ?????????? ???????????? ?? ????????','Please open via the bot button'));
+      if (tg) tg.showAlert(t('Iltimos, meni botdagi tugma orqali oching','Пожалуйста, откройте через кнопку бота','Please open via the bot button'));
       return;
     }
     const payload = {
@@ -211,19 +231,19 @@
       const res = await fetch(`${window.API_BASE}/order`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok){
         const txt = await res.text().catch(()=> '');
-        if (tg) tg.showAlert((txt && txt.length < 200 ? txt : t('Xatolik. Qayta urinib ko???ring.','????????????. ???????????????????? ??????????.','Error. Please try again.')));
+        if (tg) tg.showAlert((txt && txt.length < 200 ? txt : t("Xatolik. Qayta urinib ko'ring.",'Ошибка. Пожалуйста, попробуйте снова','Error. Please try again.')));
         return;
       }
       const data = await res.json().catch(()=>({status:'error'}));
       if (data.status==='ok'){
-        if (tg) tg.showAlert(t('??? Buyurtma qabul qilindi!','??? ?????????? ????????????!','??? Order placed!'));
+        if (tg) tg.showAlert(t('✅Buyurtma qabul qilindi!','✅Заказ принят!','✅Order placed!'));
         if (tg) tg.close();
       } else {
-        if (tg) tg.showAlert(t('Xatolik. Qayta urinib ko???ring.','????????????. ???????????????????? ??????????.','Error. Please try again.'));
+        if (tg) tg.showAlert(t("❌Xatolik. Qayta urinib ko'ring.",'❌Ошибка. Пожалуйста, попробуйте снова','❌Error. Please try again.'));
       }
     }catch(e){
       console.error('Order failed', e);
-      if (tg) tg.showAlert(t('Xatolik yuz berdi','?????????????????? ????????????','An error occurred'));
+      if (tg) tg.showAlert(t('❌Xatolik yuz berdi','❌Призошла ошибка','❌An error occurred'));
     }finally{ $checkout.disabled = false; }
   }
 
@@ -231,13 +251,13 @@
     const title = document.getElementById('title');
     const totalLabel = document.getElementById('totalLabel');
     if (language==='RU'){
-      if (title) title.textContent='??????????????';
-      if (totalLabel) totalLabel.textContent='??????????:';
-      if ($checkout) $checkout.textContent='???????????????? ??????????';
-      if ($comment) $comment.placeholder='??????????????????????';
-      if ($address) $address.placeholder='??????????';
-      if ($whatsapp) $whatsapp.placeholder='WhatsApp (??????????????????????????)';
-      if ($email) $email.placeholder='Email (??????????????????????????)';
+      if (title) title.textContent='Каталог';
+      if (totalLabel) totalLabel.textContent='Итого:';
+      if ($checkout) $checkout.textContent='Купить';
+      if ($comment) $comment.placeholder='Комментарий';
+      if ($address) $address.placeholder='Адрес';
+      if ($whatsapp) $whatsapp.placeholder='WhatsApp (опционально)';
+      if ($email) $email.placeholder='Email (опционально)';
     } else if (language==='EN'){
       if (title) title.textContent='Catalog';
       if (totalLabel) totalLabel.textContent='Total:';
@@ -292,7 +312,3 @@
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
-
-
-
-
