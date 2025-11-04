@@ -26,19 +26,35 @@
       const $list = document.getElementById('orders');
       const $title = document.getElementById('title');
 
+      function getQueryTid(){ try{ const p=new URLSearchParams(location.search); const v=p.get('tid'); return v&&/^\d+$/.test(v)?v:null }catch(e){ return null } }
       function detectLang(){
-        if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) return 'UZ';
-        const code = (tg.initDataUnsafe.user.language_code||'uz').toLowerCase();
-        return code.startsWith('ru') ? 'RU' : 'UZ';
+        const lc = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) ? tg.initDataUnsafe.user.language_code : 'uz';
+        return (lc||'uz').toLowerCase().startsWith('ru') ? 'RU' : 'UZ';
       }
       const lang = detectLang();
       if (lang === 'RU') $title.textContent = 'Мои заказы';
 
       function t(uz, ru, en){ return lang === 'RU' ? ru : (lang==='EN'? en : uz); }
 
+      async function resolveTelegramId(){
+        const u = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+        if (u && u.id) return String(u.id);
+        const tid = getQueryTid();
+        if (tid) return tid;
+        try{
+          const params = new URLSearchParams(tg?.initData || '');
+          const raw = params.get('user');
+          if (raw){ const parsed = JSON.parse(decodeURIComponent(raw)); if (parsed && parsed.id) return String(parsed.id); }
+        }catch(e){}
+        return '';
+      }
+
       async function load(){
-        const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-        const tid = user ? user.id : '';
+        const tid = await resolveTelegramId();
+        if (!tid){
+          $list.innerHTML = `<p>${t('Iltimos, bot orqali oching', 'Откройте через бота', 'Open via bot')}</p>`;
+          return;
+        }
         try{
           const res = await fetch(`/api/my-orders?telegram_id=${tid}`);
           const data = await res.json();
