@@ -28,11 +28,15 @@
 
       function getQueryTid(){ try{ const p=new URLSearchParams(location.search); const v=p.get('tid'); return v&&/^\d+$/.test(v)?v:null }catch(e){ return null } }
       function detectLang(){
-        const lc = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) ? tg.initDataUnsafe.user.language_code : 'uz';
-        return (lc||'uz').toLowerCase().startsWith('ru') ? 'RU' : 'UZ';
+        const lc = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) ? tg.initDataUnsafe.user.language_code : 'en';
+        const l = (lc||'en').toLowerCase();
+        if (l.startsWith('ru')) return 'RU';
+        if (l.startsWith('en')) return 'EN';
+        return 'UZ';
       }
       const lang = detectLang();
       if (lang === 'RU') $title.textContent = 'Мои заказы';
+      else if (lang === 'EN') $title.textContent = 'My Orders';
 
       function t(uz, ru, en){ return lang === 'RU' ? ru : (lang==='EN'? en : uz); }
 
@@ -52,7 +56,7 @@
       async function load(){
         const tid = await resolveTelegramId();
         if (!tid){
-          $list.innerHTML = `<p>${t('Iltimos, bot orqali oching', 'Откройте через бота', 'Open via bot')}</p>`;
+          $list.innerHTML = `<p>${t('Iltimos, bot orqali oching', 'Откройте через бота', 'Open via the bot')}</p>`;
           return;
         }
         try{

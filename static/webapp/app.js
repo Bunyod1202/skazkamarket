@@ -38,12 +38,28 @@
   let selectedCategory = 'all';
 
   function detectLanguage(){
-    if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) return 'UZ';
-    const code = (tg.initDataUnsafe.user.language_code || 'uz').toLowerCase();
-    if (code.startsWith('ru')) return 'RU';
-    if (code.startsWith('en')) return 'EN';
-    if (code.startsWith('uz')) return 'UZ';
-    return 'EN';
+    try{
+      let code = '';
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code){
+        code = tg.initDataUnsafe.user.language_code;
+      } else {
+        // Fallback: parse initData string
+        const params = new URLSearchParams(tg && tg.initData ? tg.initData : '');
+        const raw = params.get('user');
+        if (raw){
+          const parsed = JSON.parse(decodeURIComponent(raw));
+          code = parsed && parsed.language_code ? parsed.language_code : '';
+        }
+      }
+      if (!code && typeof navigator !== 'undefined') code = navigator.language || navigator.userLanguage || 'en';
+      code = (code || 'en').toLowerCase();
+      if (code.startsWith('ru')) return 'RU';
+      if (code.startsWith('en')) return 'EN';
+      if (code.startsWith('uz')) return 'UZ';
+      return 'EN';
+    }catch(e){
+      return 'EN';
+    }
   }
   function t(uz, ru, en){ return language==='RU' ? ru : (language==='EN' ? en : uz); }
   function fmt(v){ return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
@@ -120,14 +136,24 @@
 
   async function upsertUser(){
     try{
-      const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-      if (!user) return;
+      let user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+      if (!user || !user.id){
+        const parsed = parseUserFromInitData();
+        if (parsed && parsed.id) user = parsed;
+      }
+      if (!user || !user.id){
+        const tid = (typeof getQueryTid === 'function') ? getQueryTid() : null;
+        if (!tid) return;
+        user = { id: Number(tid) };
+      }
+      const first = user.first_name || '';
+      const last = user.last_name ? (' ' + user.last_name) : '';
       await fetch('/api/user', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           telegram_id: String(user.id),
           language,
-          full_name: user.first_name + (user.last_name?(' '+user.last_name):''),
+          full_name: (first + last).trim(),
           username: user.username || ''
         })
       });
@@ -210,18 +236,24 @@
       if ($checkout) $checkout.textContent='Оформить заказ';
       if ($comment) $comment.placeholder='Комментарий';
       if ($address) $address.placeholder='Адрес';
+      if ($whatsapp) $whatsapp.placeholder='WhatsApp (необязательно)';
+      if ($email) $email.placeholder='Email (необязательно)';
     } else if (language==='EN'){
       if (title) title.textContent='Catalog';
       if (totalLabel) totalLabel.textContent='Total:';
       if ($checkout) $checkout.textContent='Checkout';
       if ($comment) $comment.placeholder='Comment';
       if ($address) $address.placeholder='Address';
+      if ($whatsapp) $whatsapp.placeholder='WhatsApp (optional)';
+      if ($email) $email.placeholder='Email (optional)';
     } else {
       if (title) title.textContent='Katalog';
       if (totalLabel) totalLabel.textContent='Jami:';
       if ($checkout) $checkout.textContent='Buyurtma berish';
       if ($comment) $comment.placeholder='Izoh';
       if ($address) $address.placeholder='Manzil';
+      if ($whatsapp) $whatsapp.placeholder='WhatsApp (ixtiyoriy)';
+      if ($email) $email.placeholder='Email (ixtiyoriy)';
     }
   }
 
