@@ -33,8 +33,13 @@ def get_state(chat_id):
     return st
 
 
-def lang_label(st, uz, ru):
-    return ru if st.get('language') == 'RU' else uz
+def lang_label(st, uz, ru, en=None):
+    lang = (st.get('language') or '').upper()
+    if lang == 'RU':
+        return ru
+    if lang == 'EN' and en is not None:
+        return en
+    return uz
 
 
 def cart_count(st):
@@ -67,22 +72,27 @@ def send_catalog(chat_id, page=1, message_id=None):
 
     kb = types.InlineKeyboardMarkup()
     for p in chunk:
-        name = p['name_ru'] if st.get('language') == 'RU' else p['name_uz']
+        if st.get('language') == 'RU':
+            name = p.get('name_ru') or p.get('name_uz')
+        elif st.get('language') == 'EN':
+            name = p.get('name_en') or p.get('name_uz')
+        else:
+            name = p.get('name_uz')
         price = p['price']
-        label = f"Add: {name} - {price}"
+        label = f"??? {name} ??? {price}"
         kb.add(types.InlineKeyboardButton(label, callback_data=f"add:{p['id']}:pg{page}"))
 
     nav = []
     if page > 1:
-        nav.append(types.InlineKeyboardButton('Prev', callback_data=f'pg:{page-1}'))
+        nav.append(types.InlineKeyboardButton(lang_label(st, 'Orqaga', 'Назад', 'Prev'), callback_data=f'pg:{page-1}'))
     nav.append(types.InlineKeyboardButton(f"{page}/{total_pages}", callback_data='noop'))
     if page < total_pages:
-        nav.append(types.InlineKeyboardButton('Next', callback_data=f'pg:{page+1}'))
+        nav.append(types.InlineKeyboardButton(lang_label(st, 'Keyingi', 'Следующий', 'Next'), callback_data=f'pg:{page+1}'))
     if nav:
         kb.row(*nav)
-    kb.add(types.InlineKeyboardButton(f"Cart ({cart_count(st)})", callback_data='cart'))
+    kb.add(types.InlineKeyboardButton(lang_label(st, f"Savat ({cart_count(st)})", f"Сумка ({cart_count(st)})", f"Cart ({cart_count(st)})"), callback_data='cart'))
 
-    text = lang_label(st, 'Katalogdan mahsulot tanlang:', 'Выберите товары из каталога:')
+    text = lang_label(st, 'Katalogdan mahsulot tanlang:', 'Каталог товара выберите:', 'Select product from catalog:')
     if message_id:
         try:
             bot.edit_message_text(text, chat_id, message_id, reply_markup=kb)
@@ -107,17 +117,17 @@ def send_cart(chat_id, message_id=None):
         name = p['name_ru'] if st.get('language') == 'RU' else p['name_uz']
         lines.append(f"{name} x{qty}")
     if lines:
-        text = '\n'.join(lines) + f"\n\n{lang_label(st, 'Jami', 'Итого')}: {int(total) if float(total).is_integer() else total}"
+        text = '\n'.join(lines) + f"\n\n{lang_label(st, 'Jami', 'Сумма', 'Total')}: {int(total) if float(total).is_integer() else total}"
     else:
-        text = lang_label(st, 'Savat bo\'sh.', 'Корзина пуста.')
+        text = lang_label(st, 'Savat bo\'sh.', 'Сумка пуста.', 'Cart is empty.')
 
     kb = types.InlineKeyboardMarkup()
     if lines:
         kb.add(
-            types.InlineKeyboardButton(lang_label(st, 'Tozalash', 'Очистить'), callback_data='clear'),
-            types.InlineKeyboardButton(lang_label(st, 'Buyurtma berish', 'Оформить'), callback_data='checkout'),
+            types.InlineKeyboardButton(lang_label(st, 'Tozalash', 'Очистить', 'Clear'), callback_data='clear'),
+            types.InlineKeyboardButton(lang_label(st, 'Buyurtma berish', 'Заказать', 'Checkout'), callback_data='checkout'),
         )
-    kb.add(types.InlineKeyboardButton(lang_label(st, 'Katalog', 'Каталог'), callback_data='open'))
+    kb.add(types.InlineKeyboardButton(lang_label(st, 'Katalog', 'Каталог', 'Catalog'), callback_data='open'))
 
     if message_id:
         try:
@@ -134,9 +144,10 @@ def start_keyboard():
     return mk
 
 
-def contact_keyboard():
+def contact_keyboard(st=None):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    mk.add(types.KeyboardButton('Send phone / Отправить телефон', request_contact=True))
+    label = lang_label(st or {}, '📱 Telefon raqamni yuborish', '📱 Отправить телефон номер', 'Send phone number')
+    mk.add(types.KeyboardButton(label, request_contact=True))
     return mk
 
 
@@ -144,14 +155,37 @@ def is_https(url: str) -> bool:
     return url.lower().startswith('https://')
 
 
+def get_main_menu_keyboard(st, chat_id):
+    mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+
+    menu_text = lang_label(st, '📃 Menyu', '📃 Меню', '📃 Menu')
+    orders_text = lang_label(st, '🛒 Buyurtmalarim', '🛒 Мои заказы', '🛒 My Orders')
+
+    if is_https(webapp_url):
+        menu_btn = types.KeyboardButton(menu_text, web_app=types.WebAppInfo(webapp_url))
+    else:
+        menu_btn = types.KeyboardButton(menu_text)
+
+    if is_https(orders_url):
+        orders_btn = types.KeyboardButton(orders_text, web_app=types.WebAppInfo(orders_url))
+    else:
+        orders_btn = types.KeyboardButton(orders_text)
+
+    mk.row(menu_btn)
+    mk.row(orders_btn)
+    mk.row(types.KeyboardButton('🌐 Til / 🌐 Язык / 🌐 Language'))
+    return mk
+
 def main_menu_keyboard(st, chat_id):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
     orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
 
     # Localized labels styled like wide menu buttons
-    menu_text = lang_label(st, 'MAXSULOTLARNI TANLASH ', ' ВЫБОР ПРОДУКТОВ ️')
-    orders_text = lang_label(st, '🧾 BUYURTMALARIM', '🧾 МОИ ЗАКАЗЫ')
+    menu_text = lang_label(st, '📋 MAXSULOTLARNI TANLASH ', '📋 ВЫБРАТЬ ТОВАРЫ', '📋 CHOOSE PRODUCTS')
+    orders_text = lang_label(st, '🛒 BUYURTMALARIM', '🛒 ЗАКАЗЫ', '🛒 MY ORDERS')
 
     # WebApp buttons when HTTPS; plain text fallback on HTTP
     if is_https(webapp_url):
@@ -166,7 +200,7 @@ def main_menu_keyboard(st, chat_id):
 
     mk.row(menu_btn)
     mk.row(orders_btn)
-    mk.row(types.KeyboardButton('🌐 Til / Язык / Language'))
+    mk.row(types.KeyboardButton('🌐 Til / 🌐 Язык / 🌐 Language'))
     return mk
 
 
@@ -177,26 +211,26 @@ def quick_open_menu(m):
     st = get_state(chat_id)
     webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
     if not is_https(webapp_url):
-        bot.send_message(chat_id, f"Menyu: {webapp_url}", reply_markup=main_menu_keyboard(st, chat_id))
+        bot.send_message(chat_id, f"Menyu: {webapp_url}", reply_markup=get_main_menu_keyboard(st, chat_id))
     else:
         # send keyboard with WebApp button; user taps it to open
-        bot.send_message(chat_id, '📦', reply_markup=main_menu_keyboard(st, chat_id))
+        bot.send_message(chat_id, 'меню', reply_markup=get_main_menu_keyboard(st, chat_id))
 
 
-@bot.message_handler(func=lambda m: isinstance(m.text, str) and any(k in m.text.upper() for k in ['MY ORDERS', 'МОИ ЗАКАЗЫ', 'BUYURTMALAR']))
+@bot.message_handler(func=lambda m: isinstance(m.text, str) and any(k in m.text.upper() for k in ['MY ORDERS', 'МЙ ЗАКАЗЫ', 'MY ORDERS']))
 def quick_open_orders(m):
     chat_id = m.chat.id
     st = get_state(chat_id)
     orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
     if not is_https(orders_url):
-        bot.send_message(chat_id, f"Buyurtmalarim: {orders_url}", reply_markup=main_menu_keyboard(st, chat_id))
+        bot.send_message(chat_id, f"Buyurtmalarim: {orders_url}", reply_markup=get_main_menu_keyboard(st, chat_id))
     else:
-        bot.send_message(chat_id, '🧾', reply_markup=main_menu_keyboard(st, chat_id))
+        bot.send_message(chat_id, 'меню', reply_markup=get_main_menu_keyboard(st, chat_id))
 
 
 # Language change entry: react to the bottom "Language" button at any time
 @bot.message_handler(func=lambda m: isinstance(m.text, str) and (
-    'language' in m.text.lower() or 'язык' in m.text.lower() or 'til' in m.text.lower()
+    'language' in m.text.lower() or 'Язык' in m.text.lower() or 'til' in m.text.lower()
 ))
 def handle_language_button(msg):
     chat_id = msg.chat.id
@@ -234,8 +268,8 @@ def after_onboarding_message(chat_id):
     st = get_state(chat_id)
     bot.send_message(
         chat_id,
-        lang_label(st, 'Xush kelibsiz! Pastdagi menyudan tanlang.', 'Добро пожаловать! Выберите действие ниже.'),
-        reply_markup=main_menu_keyboard(st, chat_id),
+        lang_label(st, 'Xush kelibsiz! Pastdagi menyudan tanlang.', 'Добро пожаловать! Выберите из меню ниже.', 'Welcome! Select from the menu below.'),
+        reply_markup=get_main_menu_keyboard(st, chat_id),
     )
 
 
@@ -258,7 +292,7 @@ def handle_start(msg):
     except Exception:
         pass
     STATE[chat_id] = {'stage': 'language', 'cart': {}}
-    bot.send_message(chat_id, 'Tilni tanlang / Выберите язык', reply_markup=start_keyboard())
+    bot.send_message(chat_id, 'Tilni tanlang / Выберите язык / Choose language', reply_markup=start_keyboard())
 
 
 @bot.message_handler(content_types=['text'])
@@ -276,15 +310,15 @@ def handle_text(msg):
         elif text.upper().startswith('EN'):
             st['language'] = 'EN'
         else:
-            bot.send_message(chat_id, 'Please choose UZ or RU / Пожалуйста, выберите UZ или RU', reply_markup=start_keyboard())
+            bot.send_message(chat_id, 'Please choose UZ / RU / EN ', reply_markup=start_keyboard())
             return
         st['stage'] = 'contact'
         STATE[chat_id] = st
-        bot.send_message(chat_id, 'Telefon raqamingizni yuboring / Отправьте ваш телефон', reply_markup=contact_keyboard())
+        bot.send_message(chat_id, 'Telefon raqamingizni yuboring / Отправьте свой номер телефона / Send your phone number', reply_markup=contact_keyboard())
         return
 
     if stage == 'contact':
-        bot.send_message(chat_id, 'Please use the button to send phone / Используйте кнопку для отправки телефона', reply_markup=contact_keyboard())
+        bot.send_message(chat_id, 'Telefonni yuborish uchun tugmadan foydalaning / Пожалуйста, используйте кнопку, чтобы отправить телефон / Please use the button to send phone ', reply_markup=contact_keyboard())
         return
 
     if stage == 'name':
@@ -298,26 +332,26 @@ def handle_text(msg):
                 'telegram_id': str(chat_id),
                 'language': st.get('language'),
                 'phone': st.get('phone'),
-                'full_name': st.get('full_name')
+                'full_name': st.get('full_name'),
+                'username': (getattr(msg.chat, 'username', None) or '')
             }, timeout=10)
         except Exception:
             pass
-        after_onboarding_message(chat_id)
         return
 
     # Handle main menu actions from bottom reply keyboard
     text_upper = text.upper()
-    if ('MY ORDERS' in text_upper) or ('МОИ ЗАКАЗЫ' in text_upper) or ('BUYURTMALAR' in text_upper):
+    if ('MY ORDERS' in text_upper) or ('ЗАКАЗЫ' in text_upper) or ('BUYURTMALAR' in text_upper):
         orders_url = BASE_URL.rstrip('/') + '/order/'
         if not is_https(orders_url):
-            bot.send_message(chat_id, lang_label(st, 'Mening buyurtmalarim: ', 'Мои заказы: ') + orders_url, reply_markup=main_menu_keyboard(st))
+            bot.send_message(chat_id, lang_label(st, 'Mening buyurtmalarim: ', 'Заказы: ', 'My orders: ') + orders_url, reply_markup=get_main_menu_keyboard(st, chat_id))
         return
 
     if ('MENU' in text_upper) or ('МЕНЮ' in text_upper) or ('MAVZUNI' in text_upper):
         webapp_url = BASE_URL.rstrip('/') + '/webapp/'
         if not is_https(webapp_url):
             # Send URL as text for non-HTTPS/local
-            bot.send_message(chat_id, lang_label(st, 'Menyu: ', 'Меню: ') + webapp_url, reply_markup=main_menu_keyboard(st))
+            bot.send_message(chat_id, lang_label(st, 'Menyu: ', 'Меню: ', 'Menu: ') + webapp_url, reply_markup=get_main_menu_keyboard(st, chat_id))
         # If HTTPS and WebApp button is present, pressing it opens the app and does not send text
         return
 
@@ -336,20 +370,23 @@ def handle_contact(msg):
     st['stage'] = 'name'
     STATE[chat_id] = st
     if st.get('language') == 'RU':
-        bot.send_message(chat_id, 'Введите ваше полное имя (ФИО)')
-    else:
-        bot.send_message(chat_id, 'To‘liq ismingizni kiriting (FIO)')
+        bot.send_message(chat_id, 'Полное имя введите (ФИО)')
+    elif st.get('language') == 'UZ':
+        bot.send_message(chat_id, 'To???liq ismingizni kiriting (FIO)')
+    else: 
+        bot.send_message(chat_id, 'Enter your full name (FIO)')
     # Persist phone to backend
     try:
         import requests as _rq
         _rq.post(BASE_URL.rstrip('/') + '/api/user', json={
             'telegram_id': str(chat_id),
             'language': st.get('language'),
-            'phone': phone
+            'phone': phone,
+             'full_name': ((getattr(msg.from_user, 'first_name', '') or '') + ((' ' + getattr(msg.from_user, 'last_name', '')) if getattr(msg.from_user, 'last_name', None) else '')),
+            'username': (getattr(msg.chat, 'username', None) or '')
         }, timeout=10)
     except Exception:
         pass
-
 
 @bot.callback_query_handler(func=lambda c: True)
 def handle_callbacks(call):
@@ -380,18 +417,18 @@ def handle_callbacks(call):
                 except Exception:
                     page_hint = 1
             st['cart'][pid] = st['cart'].get(pid, 0) + 1
-            bot.answer_callback_query(call.id, lang_label(st, 'Qoshildi', 'Добавлено'))
+            bot.answer_callback_query(call.id, lang_label(st, "Qo'shildi", "Добавлено", "Added"))
             send_catalog(chat_id, page=page_hint, message_id=call.message.message_id)
             return
         # Keep inline catalog/cart features available if needed; no changes for orders/menu here now.
         if data == 'clear':
             st['cart'].clear()
-            bot.answer_callback_query(call.id, lang_label(st, 'Tozalandi', 'Очищено'))
+            bot.answer_callback_query(call.id, lang_label(st, "Tozalandi", "Очищено", "Cleared"))
             send_cart(chat_id, message_id=call.message.message_id)
             return
         if data == 'checkout':
             if not st.get('cart'):
-                bot.answer_callback_query(call.id, lang_label(st, 'Savat bosh', 'Пусто'))
+                bot.answer_callback_query(call.id, lang_label(st, "Savat bo'sh", "Корзина пуста", "Cart is empty"))
                 return
             items = [{ 'product_id': int(pid), 'quantity': qty } for pid, qty in st['cart'].items() if qty > 0]
             payload = {
@@ -408,12 +445,12 @@ def handle_callbacks(call):
                 r.raise_for_status()
                 _ = r.json()
                 st['cart'].clear()
-                bot.answer_callback_query(call.id, lang_label(st, 'Yuborildi', 'Отправлено'))
-                text = lang_label(st, 'Buyurtma qabul qilindi!', 'Заказ принят!')
+                bot.answer_callback_query(call.id, lang_label(st, "Yuborildi", "Отправлено", "Sent"))
+                text = lang_label(st, "Buyurtma qabul qilindi!", "Заказ принят!", "Order placed!")
                 bot.edit_message_text(text, chat_id, call.message.message_id)
             except Exception as e:
                 logging.exception('Checkout failed: %s', e)
-                bot.answer_callback_query(call.id, lang_label(st, 'Xatolik', 'Ошибка'), show_alert=True)
+                bot.answer_callback_query(call.id, lang_label(st, "Xatolik", "Ошибка", "Error"), show_alert=True)
             return
     except Exception as e:
         logging.exception('Callback error: %s', e)
@@ -421,6 +458,31 @@ def handle_callbacks(call):
             bot.answer_callback_query(call.id)
         except Exception:
             pass
+
+
+def main_menu_keyboard(st, chat_id):
+    mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+
+    # Localized labels styled like wide menu buttons (UZ / RU / EN)
+    menu_text = lang_label(st, 'MAXSULOTLARNI TANLASH', 'ВЫБЕРИТЕ ТОВАР', 'SELECT PRODUCTS')
+    orders_text = lang_label(st, 'BUYURTMALARIM', 'МОИ ЗАКАЗЫ', 'MY ORDERS')
+
+    if is_https(webapp_url):
+        menu_btn = types.KeyboardButton(menu_text, web_app=types.WebAppInfo(webapp_url))
+    else:
+        menu_btn = types.KeyboardButton(menu_text)
+
+    if is_https(orders_url):
+        orders_btn = types.KeyboardButton(orders_text, web_app=types.WebAppInfo(orders_url))
+    else:
+        orders_btn = types.KeyboardButton(orders_text)
+
+    mk.row(menu_btn)
+    mk.row(orders_btn)
+    mk.row(types.KeyboardButton('Til / Язык / Language'))
+    return mk
 
 
 def main():
@@ -434,3 +496,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

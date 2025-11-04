@@ -11,8 +11,25 @@ from .models import Product, UserProfile, Order, OrderItem, Category
 from django.db.models import Count, Q
 
 
+def _abs_media_url(request, rel_url: str) -> str:
+    """Return absolute https URL for media using BASE_URL when available."""
+    if not rel_url:
+        return ''
+    base = getattr(settings, 'BASE_URL', '')
+    try:
+        if base:
+            base = base.rstrip('/')
+            if not rel_url.startswith('/'):
+                rel_url = '/' + rel_url
+            return f"{base}{rel_url}"
+    except Exception:
+        pass
+    # fallback to request-based absolute url
+    return request.build_absolute_uri(rel_url)
+
+
 def product_to_dict(request, p: Product):
-    image_url = request.build_absolute_uri(p.image.url) if p.image else ''
+    image_url = _abs_media_url(request, p.image.url) if p.image else ''
     return {
         'id': p.id,
         'name_uz': p.name_uz,
@@ -45,7 +62,7 @@ def categories(request):
             'name_uz': c.name_uz,
             'name_ru': c.name_ru,
             'name_en': c.name_en,
-            'image': (request.build_absolute_uri(c.image.url) if c.image else ''),
+            'image': (_abs_media_url(request, c.image.url) if c.image else ''),
             'count': c.active_count,
             'sort_order': getattr(c, 'sort_order', 0),
         }
