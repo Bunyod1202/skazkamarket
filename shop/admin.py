@@ -6,7 +6,7 @@ from .models import Category, Product, UserProfile, Order, OrderItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'sort_order', 'image')
+    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'sort_order', 'image_url', 'image')
     list_editable = ('sort_order',)
     search_fields = ('name_uz', 'name_ru', 'name_en')
     ordering = ('sort_order', 'id')
@@ -14,7 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'category', 'price', 'is_active', 'sort_order')
+    list_display = ('id', 'name_uz', 'name_ru', 'name_en', 'category', 'price', 'is_active', 'sort_order', 'image_url')
     list_filter = ('category', 'is_active')
     search_fields = ('name_uz', 'name_ru', 'name_en')
     list_editable = ('sort_order',)

@@ -5,6 +5,8 @@ class Category(models.Model):
     name_uz = models.CharField(max_length=255)
     name_ru = models.CharField(max_length=255)
     name_en = models.CharField(max_length=255, blank=True, default='')
+    # Prefer using a direct image link when provided
+    image_url = models.URLField(max_length=500, blank=True, default='')
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     sort_order = models.PositiveIntegerField(default=0, db_index=True)
 
@@ -21,6 +23,8 @@ class Product(models.Model):
     name_ru = models.CharField(max_length=255)
     name_en = models.CharField(max_length=255, blank=True, default='')
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    # Prefer using a direct image link when provided
+    image_url = models.URLField(max_length=500, blank=True, default='')
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0, db_index=True)

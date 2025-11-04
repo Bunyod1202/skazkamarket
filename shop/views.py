@@ -35,7 +35,8 @@ def _abs_media_url(request, rel_url: str) -> str:
         rel_url = '/' + rel_url
     return request.build_absolute_uri(rel_url)
 def product_to_dict(request, p: Product):
-    image_url = _abs_media_url(request, p.image.url) if p.image else ''
+    # Prefer direct link when provided, fallback to uploaded file
+    image_url = p.image_url or (_abs_media_url(request, p.image.url) if p.image else '')
     return {
         'id': p.id,
         'name_uz': p.name_uz,
@@ -62,18 +63,18 @@ def categories(request):
         .annotate(active_count=Count('products', filter=Q(products__is_active=True)))
         .order_by('sort_order', 'id')
     )
-    data = [
-        {
+    data = []
+    for c in qs:
+        img = c.image_url or (_abs_media_url(request, c.image.url) if c.image else '')
+        data.append({
             'id': c.id,
             'name_uz': c.name_uz,
             'name_ru': c.name_ru,
             'name_en': c.name_en,
-            'image': (_abs_media_url(request, c.image.url) if c.image else ''),
+            'image': img,
             'count': c.active_count,
             'sort_order': getattr(c, 'sort_order', 0),
-        }
-        for c in qs
-    ]
+        })
     return JsonResponse({'categories': data})
 
 
