@@ -259,7 +259,32 @@
 
   // boot
   (async function(){
-    language = detectLanguage();
+      function detectLanguage(){
+    try{
+      const q = new URLSearchParams(location.search).get('lang');
+      const up = (q||'').toUpperCase();
+      if (up==='UZ' || up==='RU' || up==='EN') return up;
+    }catch(e){}
+    try{
+      let code = '';
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code){
+        code = tg.initDataUnsafe.user.language_code;
+      } else {
+        const params = new URLSearchParams(tg && tg.initData ? tg.initData : '');
+        const raw = params.get('user');
+        if (raw){
+          const parsed = JSON.parse(decodeURIComponent(raw));
+          code = parsed && parsed.language_code ? parsed.language_code : '';
+        }
+      }
+      if (!code && typeof navigator !== 'undefined') code = navigator.language || navigator.userLanguage || 'en';
+      code = (code || 'en').toLowerCase();
+      if (code.startsWith('ru')) return 'RU';
+      if (code.startsWith('en')) return 'EN';
+      if (code.startsWith('uz')) return 'UZ';
+      return 'EN';
+    }catch(e){ return 'EN'; }
+  }language = detectLanguage();
     initTexts();
     await upsertUser();
     await loadAll();
@@ -267,5 +292,7 @@
 
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
+
+
 
 

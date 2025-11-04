@@ -157,8 +157,8 @@ def is_https(url: str) -> bool:
 
 def get_main_menu_keyboard(st, chat_id):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
-    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
 
     menu_text = lang_label(st, '📃 Menyu', '📃 Меню', '📃 Menu')
     orders_text = lang_label(st, '🛒 Buyurtmalarim', '🛒 Мои заказы', '🛒 My Orders')
@@ -180,8 +180,8 @@ def get_main_menu_keyboard(st, chat_id):
 
 def main_menu_keyboard(st, chat_id):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
-    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
 
     # Localized labels styled like wide menu buttons
     menu_text = lang_label(st, '📋 MAXSULOTLARNI TANLASH ', '📋 ВЫБРАТЬ ТОВАРЫ', '📋 CHOOSE PRODUCTS')
@@ -209,7 +209,7 @@ def main_menu_keyboard(st, chat_id):
 def quick_open_menu(m):
     chat_id = m.chat.id
     st = get_state(chat_id)
-    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
     if not is_https(webapp_url):
         bot.send_message(chat_id, f"Menyu: {webapp_url}", reply_markup=get_main_menu_keyboard(st, chat_id))
     else:
@@ -221,7 +221,7 @@ def quick_open_menu(m):
 def quick_open_orders(m):
     chat_id = m.chat.id
     st = get_state(chat_id)
-    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
     if not is_https(orders_url):
         bot.send_message(chat_id, f"Buyurtmalarim: {orders_url}", reply_markup=get_main_menu_keyboard(st, chat_id))
     else:
@@ -462,8 +462,8 @@ def handle_callbacks(call):
 
 def main_menu_keyboard(st, chat_id):
     mk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}"
-    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}"
+    webapp_url = f"{BASE_URL.rstrip('/')}/webapp/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
+    orders_url = f"{BASE_URL.rstrip('/')}/order/?tid={chat_id}&lang={(st.get('language') or 'UZ')}"
 
     # Localized labels styled like wide menu buttons (UZ / RU / EN)
     menu_text = lang_label(st, 'MAXSULOTLARNI TANLASH', 'ВЫБЕРИТЕ ТОВАР', 'SELECT PRODUCTS')
