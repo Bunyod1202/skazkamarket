@@ -1,4 +1,4 @@
-import json
+﻿import json
 from decimal import Decimal
 import requests
 
@@ -12,22 +12,28 @@ from django.db.models import Count, Q
 
 
 def _abs_media_url(request, rel_url: str) -> str:
-    """Return absolute https URL for media using BASE_URL when available."""
+    """Return absolute https URL for media.
+
+    Preference order:
+    1) settings.BASE_URL if it is HTTPS
+    2) request.build_absolute_uri (respects SECURE_PROXY_SSL_HEADER)
+    This avoids generating http:// links that Telegram blocks in WebView.
+    """
     if not rel_url:
         return ''
-    base = getattr(settings, 'BASE_URL', '')
+    base = getattr(settings, 'BASE_URL', '') or ''
     try:
-        if base:
-            base = base.rstrip('/')
-            if not rel_url.startswith('/'):
+        if base and isinstance(base, str) and base.lower().startswith("https://"):
+            base = base.rstrip("/")
+            if not rel_url.startswith("/"):
                 rel_url = '/' + rel_url
             return f"{base}{rel_url}"
     except Exception:
         pass
-    # fallback to request-based absolute url
+    # fallback to request-based absolute url (should be https with proxy headers)
+    if not rel_url.startswith("/"):
+        rel_url = '/' + rel_url
     return request.build_absolute_uri(rel_url)
-
-
 def product_to_dict(request, p: Product):
     image_url = _abs_media_url(request, p.image.url) if p.image else ''
     return {
@@ -162,7 +168,7 @@ def create_order(request):
     admin_text_lines.append(f"Total: {order.total}")
     admin_text = '\n'.join(admin_text_lines)
 
-    user_text = f"✅ Buyurtma qabul qilindi!\n\n# {order.id} summa: {order.total}"
+    user_text = f"вњ… Buyurtma qabul qilindi!\n\n# {order.id} summa: {order.total}"
 
     send_telegram_message(chat_id=user.telegram_id, text=user_text)
     if getattr(settings, 'ADMIN_CHAT_ID', ''):
