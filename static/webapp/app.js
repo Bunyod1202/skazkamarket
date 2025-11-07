@@ -71,6 +71,7 @@
   const $totalBarLabel = document.getElementById('totalBarLabel');
   const $cartPanel = document.getElementById('cartPanel');
   const $cartBtn = document.getElementById('cartBtn');
+  const $themeToggle = document.getElementById('themeToggle');
   const $checkout = document.getElementById('checkout');
   const $comment = document.getElementById('comment');
   const $address = document.getElementById('address');
@@ -262,12 +263,33 @@
   }
 
   // Boot ------------------------------------------------------------------
+  // Theme handling --------------------------------------------------------
+  function detectTheme(){
+    const saved = localStorage.getItem('theme');
+    if (saved==='light' || saved==='dark') return saved;
+    if (tg && tg.colorScheme) return tg.colorScheme === 'dark' ? 'dark' : 'light';
+    try{ return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }catch(e){ return 'dark' }
+  }
+  function applyTheme(th){
+    document.body.classList.remove('theme-light');
+    if (th==='light') document.body.classList.add('theme-light');
+    localStorage.setItem('theme', th);
+    if ($themeToggle) $themeToggle.textContent = (th==='light' ? '🌙' : '☀️');
+  }
+
   initTexts();
+  applyTheme(detectTheme());
   upsertUser();
   loadAll();
   if ($cartBtn){
     $cartBtn.addEventListener('click', ()=>{ if($cartPanel){ $cartPanel.classList.toggle('open'); } });
     updateTotal();
+  }
+  if ($themeToggle){
+    $themeToggle.addEventListener('click', ()=>{
+      const cur = localStorage.getItem('theme') || (document.body.classList.contains('theme-light') ? 'light' : 'dark');
+      applyTheme(cur==='light' ? 'dark' : 'light');
+    });
   }
   if ($checkout) $checkout.addEventListener('click', submitOrder);
 })();
